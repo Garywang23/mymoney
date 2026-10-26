@@ -87,7 +87,7 @@ a{color:#2563eb}
 <p id="addMsg" class="muted"></p>
 <div id="list"></div>
 </details>
-<p class="muted">计算公式：当日万收=(当日净值/上一净值-1)×10000；近七日日均=近7个自然日内当日万收之和/7，近14日同理；近7日年化=(当日净值/7日前最近净值-1)×365/实际天数，近14日、近一月同理。成立以来年化已按你的要求去掉。净值来源：中国理财网公开查询，2026-10-26净值仅匠心灵动N有1条（由当日万收反推的近似值，见数据文件备注），其余产品最新仍为2026-10-23。诚享在中国理财网只显示4位小数，由此算出的当日万收会偏粗。</p>
+<p class="muted">最重要：持有年化 = 持仓盈亏 / 本金 × 365 / 持有天数，持仓盈亏 = 份额 ×（最新净值 - 买入净值），本金 = 份额 × 买入净值，持有天数 = 最新净值日 - 买入日，全部从买入日起算，买入日之前的净值不用。其他公式：当日万收=(当日净值/上一净值-1)×10000；近七日日均=近7个自然日内当日万收之和/7，近14日同理；近7日年化=(当日净值/7日前最近净值-1)×365/实际天数，近14日、近一月同理。成立以来年化已按你的要求去掉。净值来源：中国理财网公开查询，2026-10-26净值仅匠心灵动N有1条（由当日万收反推的近似值，见数据文件备注），其余产品最新仍为2026-10-23。诚享在中国理财网只显示4位小数，由此算出的当日万收会偏粗。</p>
 </div>
 </div>
 <script>
@@ -216,9 +216,9 @@ function renderHoldings(){
       const asOf=viewAsOf(p.share_code); const c=calc(p.share_code, asOf); const other=DIM==='distributor'?('管理：'+p.manager_short):('代销：'+p.distributor);
       const updated=!(VIEW==='next' && asOf==='2026-10-23');
       const badge=VIEW==='next' ? (updated ? (asOf.slice(5)+' ('+fmt(c.daily/c.amount*10000)+')') : '未更新') : asOf.slice(5);
-      html+='<div class="card prod" data-share="'+p.share_code+'"><div class="row"><b>'+p.ledger_name+' <span class="muted">('+p.share_code+')</span></b><span style="color:'+(updated?'#2563eb':'#e60012')+'">'+badge+'</span></div>'
-        +'<div class="prod cols"><div><span class="muted">持有金额</span><b>'+c.amount.toLocaleString(undefined,{maximumFractionDigits:2})+'</b></div><div><span class="muted">当日盈亏</span><b>'+(updated?fmt(c.daily):'—')+'</b></div><div><span class="muted">本月收益</span><b>'+fmt(c.monthly)+'</b></div><div><span class="muted">持仓盈亏</span><b>'+fmt(c.holdingPnl)+'</b></div><div><span class="muted">持有年化</span><b>'+fmt(c.holdingAnn)+'%</b></div></div>'
-        +'<div class="muted">份额 '+p.shares.toLocaleString()+' · 净值 '+c.cur[1]+'（'+c.cur[0]+'） · '+other+'</div></div>';
+      html+='<div class="card prod" data-share="'+p.share_code+'"><div class="row"><b>'+p.ledger_name+' <span class="muted">('+p.share_code+')</span></b><span style="color:#e60012;font-size:18px;font-weight:800">持有年化 '+fmt(c.holdingAnn)+'%</span><span style="color:'+(updated?'#2563eb':'#e60012')+'">'+badge+'</span></div>'
+        +'<div class="prod cols"><div><span class="muted">持有金额</span><b>'+c.amount.toLocaleString(undefined,{maximumFractionDigits:2})+'</b></div><div><span class="muted">当日盈亏</span><b>'+(updated?fmt(c.daily):'—')+'</b></div><div><span class="muted">本月收益</span><b>'+fmt(c.monthly)+'</b></div><div><span class="muted">持仓盈亏</span><b>'+fmt(c.holdingPnl)+'</b></div><div><span class="muted">持有年化（最重要，由买入日起算）</span><b style="color:#e60012">'+fmt(c.holdingAnn)+'%</b></div></div>'
+        +'<div class="muted">份额 '+p.shares.toLocaleString()+' · 净值 '+c.cur[1]+'（'+c.cur[0]+'） · 买入 '+p.purchase_date+' @ '+p.purchase_nav+' · '+other+'</div></div>';
     });
   });
   wrap.innerHTML=html;
