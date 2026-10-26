@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>我的理财净值历史</title>
+<style>
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;max-width:1080px;margin:0 auto;padding:16px;background:#f6f7f9;color:#222}
+h1{font-size:22px} h2{font-size:18px;margin-top:32px}
+.note{background:#fff;border:1px solid #e2e6ea;border-radius:10px;padding:12px 14px;line-height:1.7}
+.card{background:#fff;border:1px solid #e2e6ea;border-radius:12px;padding:16px;margin:16px 0}
+.card h3{margin:0 0 6px}.meta{color:#666;font-size:14px;line-height:1.7}
+.latest{font-size:28px;color:#2563eb;font-weight:700}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin:12px 0}
+.box{border:1px solid #e2e6ea;border-radius:8px;padding:10px}.box b{display:block;font-size:14px;color:#666}.box span{font-size:16px}
+table{width:100%;border-collapse:collapse;font-size:14px}th,td{border-bottom:1px solid #eee;padding:6px 8px;text-align:left}
+canvas{width:100%;height:140px;background:#fafbfc;border:1px solid #eee;border-radius:8px}
+input,select,button{padding:8px;margin:4px 4px 4px 0}button{cursor:pointer}
+a{color:#2563eb}
+</style>
+</head>
+<body>
+<h1>我的理财净值历史</h1>
+<p class="note">数据来源：中国理财网·理财行业统一信息披露平台，公开查询。最新净值日 2026-10-23。每只产品取最近 30 条净值，因周末节假日无净值，30 条不是连续 30 个自然日。净值均为份额净值（元/CNY）。过往业绩不代表未来表现，不构成收益承诺。<br>
+查净值的两个关键数据：登记编码打开详情页，子份额代码在详情页的净值下拉里选到对应份额，两个都要对上，不同份额净值可能不同。<br>
+本页的净值数据是公开数据，放在仓库里。持仓金额不在仓库里，你在本页输入的持仓只保存在你自己浏览器的本地存储，不会上传。</p>
+
+<div class="card">
+<h3>新增一日净值（只在本页临时计算，可导出）</h3>
+<label>产品 <select id="pSel"></select></label>
+<label>日期 <input id="dIn" type="date" value="2026-10-24"></label>
+<label>净值 <input id="nIn" type="number" step="0.000001" placeholder="例如 1.0190"></label>
+<button id="addBtn">加入本页并重算</button>
+<button id="expBtn">导出本页数据为 JSON</button>
+<p id="addMsg" style="color:#666"></p>
+</div>
+
+<div id="list">正在加载 nav-history.json …</div>
+
+<script>
+let DATA=null;
+async function load(){
+  const r=await fetch('nav-history.json'); DATA=await r.json();
+  const sel=document.getElementById('pSel');
+  DATA.products.forEach((p,i)=>{const o=document.createElement('option');o.value=i;o.textContent=p.ledger_name+' '+p.share_code;sel.appendChild(o);});
+  render();
+}
+function wan(n,prev){ if(prev==null) return '—'; return ((n-prev)*10000).toFixed(2); }
+function chg(n,prev){ if(prev==null) return '—'; return ((n-prev)/prev*100).toFixed(4)+'%'; }
+function draw(canvas, hist){
+  const ctx=canvas.getContext('2d'); const W=canvas.width=canvas.offsetWidth*2, H=canvas.height=280;
+  ctx.clearRect(0,0,W,H); const vals=hist.map(x=>x[1]).slice().reverse();
+  const mn=Math.min(...vals), mx=Math.max(...vals), pad=20;
+  ctx.strokeStyle='#2563eb'; ctx.lineWidth=3; ctx.beginPath();
+  vals.forEach((v,i)=>{const x=pad+i*(W-2*pad)/Math.max(1,vals.length-1); const y=H-pad-(v-mn)/Math.max(0.000001,mx-mn)*(H-2*pad); i?ctx.lineTo(x,y):ctx.moveTo(x,y);});
+  ctx.stroke();
+}
+function render(){
+  const wrap=document.getElementById('list'); wrap.innerHTML='';
+  DATA.products.forEach(p=>{
+    const hist=p.history_desc; const latest=hist[0];
+    const el=document.createElement('div'); el.className='card';
+    const link='https://xinxipilu.chinawealth.com.cn/queryMenu/prodType/prodTypeDetail?prodRegCode='+p.registration_code;
+    el.innerHTML='<h3>'+p.ledger_name+'</h3><div class="meta">'+p.official_name+'<br>管理人：'+p.manager+'<br>登记编码：'+p.registration_code+'　子份额代码：'+p.share_code+'<br>平台净值表共 '+p.platform_total_rows+' 条　<a href="'+link+'" target="_blank" rel="noopener">去中国理财网详情页</a>'+(p.note?'<br>注意：'+p.note:'')+(p.anomaly?'<br>注意：'+p.anomaly:'')+'</div>'
+      +'<div>最新净值 <span class="latest">'+latest[1]+'</span>（'+latest[0]+'）</div>'
+      +'<div class="grid">'
+      +'<div class="box"><b>近1个月年化</b><span>'+(p.past_performance.last_1m||'—')+'</span></div>'
+      +'<div class="box"><b>近3个月年化</b><span>'+(p.past_performance.last_3m||'—')+'</span></div>'
+      +'<div class="box"><b>成立以来年化</b><span>'+(p.past_performance.since_inception||'—')+'</span></div>'
+      +'</div><canvas></canvas>'
+      +'<table><tr><th>日期</th><th>份额净值</th><th>日涨跌</th><th>当日万收（每万份）</th></tr>'
+      +hist.map((row,i)=>{const prev=hist[i+1]?hist[i+1][1]:null; return '<tr><td>'+row[0]+'</td><td>'+row[1]+'</td><td>'+chg(row[1],prev)+'</td><td>'+wan(row[1],prev)+'</td></tr>';}).join('')
+      +'</table>';
+    wrap.appendChild(el); draw(el.querySelector('canvas'), hist);
+  });
+}
+document.getElementById('addBtn').onclick=()=>{
+  const i=+document.getElementById('pSel').value, d=document.getElementById('dIn').value, n=parseFloat(document.getElementById('nIn').value);
+  if(!d||isNaN(n)){document.getElementById('addMsg').textContent='请填写日期和净值';return;}
+  const p=DATA.products[i];
+  p.history_desc=p.history_desc.filter(x=>x[0]!==d); p.history_desc.unshift([d,n]); p.history_desc.sort((a,b)=>b[0].localeCompare(a[0]));
+  document.getElementById('addMsg').textContent='已在本页加入 '+p.ledger_name+' '+d+' '+n+'，当日万收和走势已重算，刷新后恢复为仓库数据，如需保存请点导出。';
+  render();
+};
+document.getElementById('expBtn').onclick=()=>{
+  const blob=new Blob([JSON.stringify(DATA,null,2)],{type:'application/json'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='nav-history.json'; a.click();
+};
+load();
+</script>
+</body>
+</html>
