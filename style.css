@@ -1,0 +1,41 @@
+
+*{box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;margin:0;background:#7a6df0;color:#222}
+.wrap{max-width:1080px;margin:0 auto;padding:18px 14px 28px}
+.topTabs{display:flex;background:#e9e6fb;border-radius:12px;padding:4px;margin-bottom:16px}
+.topTabs button{flex:1;border:0;background:transparent;padding:10px;border-radius:9px;font-size:15px;cursor:pointer;color:#555}
+.topTabs button.on{background:#fff;font-weight:700;color:#222;box-shadow:0 1px 4px rgba(0,0,0,.12)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:760px){.grid{grid-template-columns:1fr}}
+.card{background:#fff;border-radius:16px;padding:18px;box-shadow:0 2px 10px rgba(0,0,0,.08)}
+.card h2{margin:0 0 12px;font-size:17px}
+.card h2:before{content:"";display:inline-block;width:4px;height:16px;background:#6a5acd;border-radius:2px;vertical-align:-2px;margin-right:8px}
+.big{font-size:32px;font-weight:800;color:#e60012;text-align:center}
+.center{text-align:center;color:#666;font-size:13px;margin-top:6px}
+.miniGrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px}
+.mini{background:#f3f2fb;border-radius:10px;padding:12px;text-align:center}
+.mini .lab{color:#666;font-size:13px}
+.mini .val{color:#e60012;font-weight:700;font-size:18px;margin-top:4px}
+.muted{color:#888;font-size:13px}
+.row{display:flex;justify-content:space-between;gap:8px;align-items:center}
+.pill{border:1px solid #ddd;background:#fff;border-radius:20px;padding:5px 12px;cursor:pointer;font-size:13px}
+.pill.on{background:#6a5acd;color:#fff;border-color:#6a5acd}
+.groupHead{display:flex;justify-content:space-between;background:#fdf2f7;border-radius:10px;padding:10px 12px;margin-top:14px}
+.prod{border:1px solid #eee;border-radius:12px;padding:12px;margin-top:10px;cursor:pointer}
+.prod .cols{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:10px;font-size:13px}
+.prod .cols b{display:block;font-weight:600}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;text-align:center;font-size:13px}
+.cal .cell{border:1px solid #eee;border-radius:10px;min-height:52px;padding:6px}
+.cal .cell.has{background:#fdeef2}
+.cal .cell .v{color:#e60012;font-size:12px}
+.detail{display:none;margin-top:10px;border-top:1px dashed #ddd;padding-top:10px}
+table{width:100%;border-collapse:collapse;font-size:13px}th,td{border-bottom:1px solid #eee;padding:5px;text-align:left}
+canvas{width:100%;height:110px;background:#fafbfc;border:1px solid #eee;border-radius:8px}
+input,select,button{padding:7px;margin:4px 4px 4px 0}button{cursor:pointer}
+a{color:#2563eb}
+
+.nav{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.nav a{color:#fff;text-decoration:none;background:rgba(255,255,255,.18);padding:8px 14px;border-radius:20px;font-size:14px}
+.nav a.on{background:#fff;color:#222;font-weight:700}
+.nav a:hover{background:#fff;color:#222}
+.pagetitle{color:#fff;margin:0 0 16px;font-size:22px}
