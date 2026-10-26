@@ -45,15 +45,15 @@ a{color:#2563eb}
 </details>
 </div>
 <div id="list"></div>
-<p class="muted">净值来源：中国理财网公开查询，最新净值日 2026-10-23（提前披露除外）。持仓为自填记录，以银行 App / 对账单为准。过往业绩不代表未来表现。</p>
+<p class="muted">净值来源：中国理财网公开查询，最新净值日 2026-10-23（提前披露除外）。持仓以份额为准，总额 = 份额 × 最新净值，份额由 2026-10-23 快照倒推，如银行实际份额不同请以银行为准。过往业绩不代表未来表现。</p>
 </main>
 <script>
 let DATA=null, HOLD=null;
 async function load(){
   DATA=await (await fetch('nav-history.json')).json();
   HOLD=await (await fetch('holdings.json')).json();
-  document.getElementById('totalHolding').textContent=HOLD.total_holding.toLocaleString()+' 元';
-  document.getElementById('todayLine').textContent='今日 +'+HOLD.total_daily_pnl+' · 本月 +'+HOLD.monthly.pnl+' · 2026-10-23';
+  updateTotals();
+  document.getElementById('todayLine').textContent='今日 +'+HOLD.total_daily_pnl+' · 本月 +'+HOLD.monthly.pnl+' · 2026-10-23 · 持仓以份额为准，总额 = 份额 × 净值';
   const sel=document.getElementById('pSel');
   DATA.products.forEach((p,i)=>{const o=document.createElement('option');o.value=i;o.textContent=p.ledger_name;sel.appendChild(o);});
   renderHoldings(); render();
@@ -68,14 +68,19 @@ function draw(canvas, hist){
   vals.forEach((v,i)=>{const x=pad+i*(W-2*pad)/Math.max(1,vals.length-1); const y=H-pad-(v-mn)/Math.max(0.000001,mx-mn)*(H-2*pad); i?ctx.lineTo(x,y):ctx.moveTo(x,y);});
   ctx.stroke();
 }
+function latestNav(share){ const n=DATA.products.find(x=>x.share_code===share); return n?n.history_desc[0][1]:null; }
+function updateTotals(){
+  let total=0; HOLD.products.forEach(p=>{ const nav=latestNav(p.share_code); if(nav!=null) total+=p.shares*nav; });
+  document.getElementById('totalHolding').textContent=total.toLocaleString(undefined,{maximumFractionDigits:2})+' 元';
+}
 function renderHoldings(){
   const wrap=document.getElementById('holdings'); let html='';
   HOLD.groups.forEach(g=>{
     html+='<div class="group">'+g.name+' · 当日 +'+g.daily_pnl+'</div>';
     HOLD.products.filter(p=>p.group===g.name).forEach(p=>{
-      const nav=DATA.products.find(n=>n.share_code===p.share_code);
-      html+='<div class="card prod" data-share="'+p.share_code+'"><div class="row"><b>'+p.ledger_name+'</b><span>'+p.holding_amount.toLocaleString()+'</span></div>'
-        +'<div class="row muted"><span>当日 '+(p.daily_pnl>=0?'+':'')+p.daily_pnl+' · 年化 '+p.annualized+'%</span><span>净值 '+(nav?nav.history_desc[0][1]:'—')+'</span></div></div>';
+      const nav=latestNav(p.share_code); const amt=nav!=null?p.shares*nav:p.holding_amount;
+      html+='<div class="card prod" data-share="'+p.share_code+'"><div class="row"><b>'+p.ledger_name+'</b><span>'+amt.toLocaleString(undefined,{maximumFractionDigits:2})+'</span></div>'
+        +'<div class="row muted"><span>份额 '+p.shares.toLocaleString()+' · 当日 '+(p.daily_pnl>=0?'+':'')+p.daily_pnl+' · 年化 '+p.annualized+'%</span><span>净值 '+(nav!=null?nav:'—')+'</span></div></div>';
     });
   });
   wrap.innerHTML=html;
@@ -102,7 +107,7 @@ document.getElementById('addBtn').onclick=()=>{
   const i=+document.getElementById('pSel').value, d=document.getElementById('dIn').value, n=parseFloat(document.getElementById('nIn').value);
   if(!d||isNaN(n)){document.getElementById('addMsg').textContent='请填写日期和净值';return;}
   const p=DATA.products[i]; p.history_desc=p.history_desc.filter(x=>x[0]!==d); p.history_desc.unshift([d,n]); p.history_desc.sort((a,b)=>b[0].localeCompare(a[0]));
-  document.getElementById('addMsg').textContent='已加入 '+p.ledger_name+' '+d+' '+n+'，刷新后恢复仓库数据。'; render();
+  document.getElementById('addMsg').textContent='已加入 '+p.ledger_name+' '+d+' '+n+'，总额已按份额×新净值重算，刷新后恢复仓库数据。'; updateTotals(); renderHoldings(); render();
 };
 document.getElementById('expBtn').onclick=()=>{
   const blob=new Blob([JSON.stringify(DATA,null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='nav-history.json'; a.click();
