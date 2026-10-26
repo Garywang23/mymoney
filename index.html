@@ -133,12 +133,22 @@ function calc(share, asOf){
   const amount=hold.shares*cur[1];
   const daily=prev?hold.shares*(cur[1]-prev[1]):0;
   const month=cur[0].slice(0,7);
-  const beforeMonth=histAsc(share).filter(x=>x[0]<month+'-01');
-  let monthStartNav, monthStartDate;
-  if(hold.purchase_date.slice(0,7)===month){ monthStartNav=hold.purchase_nav; monthStartDate=hold.purchase_date; }
-  else if(beforeMonth.length){ monthStartNav=beforeMonth[beforeMonth.length-1][1]; monthStartDate=beforeMonth[beforeMonth.length-1][0]; }
-  else { monthStartNav=null; monthStartDate=null; }
-  const monthly=monthStartNav!=null?hold.shares*(cur[1]-monthStartNav):0;
+  // 本月收益必须按日份额算，不能按现在份额 ×（最新 - 月初）：诚享10月内多次买卖，旧算法算出 630.00，实际按日份额是 492.99（目标 509.26，差在四舍五入净值）
+  let monthly=0, monthStartNav=null, monthStartDate=null;
+  if(TX){
+    const h=histAsc(share);
+    for(let i=1;i<h.length;i++){
+      if(!h[i][0].startsWith(month) || h[i][0]>asOf) continue;
+      monthly+=lotShares(hold.ledger_name, h[i][0])*(h[i][1]-h[i-1][1]);
+    }
+    const beforeMonth=h.filter(x=>x[0]<month+'-01');
+    if(beforeMonth.length){ monthStartNav=beforeMonth[beforeMonth.length-1][1]; monthStartDate=beforeMonth[beforeMonth.length-1][0]; }
+  } else {
+    const beforeMonth=histAsc(share).filter(x=>x[0]<month+'-01');
+    if(hold.purchase_date.slice(0,7)===month){ monthStartNav=hold.purchase_nav; monthStartDate=hold.purchase_date; }
+    else if(beforeMonth.length){ monthStartNav=beforeMonth[beforeMonth.length-1][1]; monthStartDate=beforeMonth[beforeMonth.length-1][0]; }
+    monthly=monthStartNav!=null?hold.shares*(cur[1]-monthStartNav):0;
+  }
   const holdingPnl=hold.shares*(cur[1]-hold.purchase_nav);
   const principal=hold.shares*hold.purchase_nav;
   const daysHeld=daysBetween(hold.purchase_date, cur[0]);
