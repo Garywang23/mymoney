@@ -5,18 +5,35 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>个人台账</title>
 <style>
-body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;margin:0;background:#f5f5f7;color:#222}
-header{padding:20px 16px 8px;max-width:720px;margin:0 auto}
-header h1{margin:0;font-size:20px}
-main{max-width:720px;margin:0 auto;padding:0 12px 24px}
-.total{font-size:30px;font-weight:800;color:#e60012}
-.sub{color:#666;font-size:14px;margin-top:4px}
-.card{background:#fff;border-radius:12px;padding:14px;margin:12px 0}
-.group{font-weight:700;margin:16px 0 6px}
-.prod{border-top:1px solid #eee;padding:10px 0;cursor:pointer}
-.prod:first-child{border-top:none}
-.row{display:flex;justify-content:space-between;gap:8px}
+*{box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;margin:0;background:#7a6df0;color:#222}
+.wrap{max-width:1080px;margin:0 auto;padding:18px 14px 28px}
+.topTabs{display:flex;gap:0;background:#e9e6fb;border-radius:12px;padding:4px;margin-bottom:16px}
+.topTabs button{flex:1;border:0;background:transparent;padding:10px;border-radius:9px;font-size:15px;cursor:pointer;color:#555}
+.topTabs button.on{background:#fff;font-weight:700;color:#222;box-shadow:0 1px 4px rgba(0,0,0,.12)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:760px){.grid{grid-template-columns:1fr}}
+.card{background:#fff;border-radius:16px;padding:18px;box-shadow:0 2px 10px rgba(0,0,0,.08)}
+.card h2{margin:0 0 12px;font-size:17px}
+.card h2:before{content:"";display:inline-block;width:4px;height:16px;background:#6a5acd;border-radius:2px;vertical-align:-2px;margin-right:8px}
+.big{font-size:32px;font-weight:800;color:#e60012;text-align:center}
+.center{text-align:center;color:#666;font-size:13px;margin-top:6px}
+.miniGrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px}
+.mini{background:#f3f2fb;border-radius:10px;padding:12px;text-align:center}
+.mini .lab{color:#666;font-size:13px}
+.mini .val{color:#e60012;font-weight:700;font-size:18px;margin-top:4px}
 .muted{color:#888;font-size:13px}
+.row{display:flex;justify-content:space-between;gap:8px;align-items:center}
+.pill{border:1px solid #ddd;background:#fff;border-radius:20px;padding:5px 12px;cursor:pointer;font-size:13px}
+.pill.on{background:#6a5acd;color:#fff;border-color:#6a5acd}
+.groupHead{display:flex;justify-content:space-between;background:#fdf2f7;border-radius:10px;padding:10px 12px;margin-top:14px}
+.prod{border:1px solid #eee;border-radius:12px;padding:12px;margin-top:10px;cursor:pointer}
+.prod .cols{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:10px;font-size:13px}
+.prod .cols b{display:block;font-weight:600}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;text-align:center;font-size:13px}
+.cal .cell{border:1px solid #eee;border-radius:10px;min-height:52px;padding:6px}
+.cal .cell.has{background:#fdeef2}
+.cal .cell .v{color:#e60012;font-size:12px}
 .detail{display:none;margin-top:10px;border-top:1px dashed #ddd;padding-top:10px}
 table{width:100%;border-collapse:collapse;font-size:13px}th,td{border-bottom:1px solid #eee;padding:5px;text-align:left}
 canvas{width:100%;height:110px;background:#fafbfc;border:1px solid #eee;border-radius:8px}
@@ -25,45 +42,157 @@ a{color:#2563eb}
 </style>
 </head>
 <body>
-<header>
-<h1>个人台账</h1>
-<div class="total" id="totalHolding">—</div>
-<div class="sub" id="todayLine">—</div>
-<div class="sub" id="earlyLine">提前披露：2026-10-26 匠心灵动 +17.17，总额 1,457,658.04（中国理财网暂未披露该日净值）</div>
-</header>
-<main>
-<div class="card" id="instCard">
-<div><button id="tabDist">代销</button> <button id="tabMgr">管理</button> <span class="muted" id="dimLabel">机构筛选维度：代销 · 全部机构</span></div>
-<div style="margin-top:8px"><label>机构 <select id="instSel"></select></label> <button id="multiBtn">多选</button></div>
-<div id="multiBox" style="display:none;margin-top:8px"></div>
-<p class="muted" style="margin:8px 0 0">多选规则同目标页：勾选多家为并集；不勾选或勾满全部并确定，回到全部机构。</p>
-</div>
-<div id="holdings">正在加载…</div>
+<div class="wrap">
+<div class="topTabs"><button id="tabToday">今日收益总揽</button><button id="tabNext" class="on">下日提前披露</button></div>
+<div class="grid">
 <div class="card">
+<div class="row"><h2 id="leftTitle">下日提前披露总览</h2><button class="pill" onclick="location.reload()">刷新</button></div>
+<div class="big" id="leftBig">+17.17</div>
+<div class="center" id="leftSub">2026-10-26&nbsp;&nbsp;1/8 已提前披露</div>
+<div class="miniGrid">
+<div class="mini"><div class="lab">本月收益</div><div class="val" id="monthPnl">+2,319.97</div></div>
+<div class="mini"><div class="lab">本月年化</div><div class="val" id="monthAnn">+2.03%</div></div>
+<div class="mini"><div class="lab">上月收益</div><div class="val">+1,998.67</div></div>
+<div class="mini"><div class="lab">上月年化</div><div class="val">+2.06%</div></div>
+</div>
+</div>
+<div class="card">
+<div class="row"><h2>持有资产</h2><a href="#" onclick="return false">趋势与构成 ›</a></div>
+<div class="center">持仓总金额（元）</div>
+<div class="big" id="totalHolding">—</div>
+<div class="row" style="background:#f3f2fb;border-radius:10px;padding:10px;margin-top:14px"><span class="muted">在途交易<br>买入 1 笔</span><a href="#" onclick="return false">查看 ›</a></div>
+<div class="row" style="margin-top:14px"><span>交易中心<br><span class="muted">按时间查看买入、卖出与筛选</span></span><button class="pill on">进入</button></div>
+<p class="muted" style="margin-top:12px">持仓以份额为准，总额 = 份额 × 净值。在途交易、交易中心仅为展示，不连接银行、不做交易。</p>
+</div>
+<div class="card">
+<div class="row"><h2>收益日历</h2><span><button class="pill on">日</button> <button class="pill">周</button> <button class="pill">月</button></span></div>
+<div class="row"><button class="pill">‹</button><b>2026年10月</b><button class="pill">›</button></div>
+<div class="cal" id="calendar"></div>
+<p class="muted">与小程序一致：可查北京时间近三个自然月（本月 + 上月 + 上上月）。粉色为有收益的日期。</p>
+</div>
+<div class="card">
+<div class="row"><h2 id="detailTitle">收益明细 · 2026-10-26</h2><span><button class="pill on">分组</button> <button class="pill">排序</button></span></div>
+<div style="margin-top:10px"><button class="pill on" id="dTabDist">代销</button> <button class="pill" id="dTabMgr">管理</button> <select id="instSel"></select> <button class="pill" id="multiBtn">多选</button></div>
+<div id="multiBox" style="display:none;margin-top:8px"></div>
+<div id="holdings">正在加载…</div>
+</div>
+</div>
+<div class="card" style="margin-top:16px">
 <details>
-<summary>新增一日净值 / 导出</summary>
+<summary>新增一日净值 / 导出 / 净值历史</summary>
 <label>产品 <select id="pSel"></select></label>
 <label>日期 <input id="dIn" type="date" value="2026-10-27"></label>
 <label>净值 <input id="nIn" type="number" step="0.000001" placeholder="1.0190"></label>
 <button id="addBtn">加入并重算</button>
 <button id="expBtn">导出 JSON</button>
 <p id="addMsg" class="muted"></p>
-</details>
-</div>
 <div id="list"></div>
-<p class="muted">净值来源：中国理财网公开查询，最新净值日 2026-10-23（提前披露除外）。持仓以份额为准，总额 = 份额 × 最新净值，份额由 2026-10-23 快照倒推，如银行实际份额不同请以银行为准。过往业绩不代表未来表现。</p>
-</main>
+</details>
+<p class="muted">净值来源：中国理财网公开查询，最新净值日 2026-10-23（提前披露除外）。持仓为自填记录，以银行 App / 对账单为准。过往业绩不代表未来表现。点产品可展开净值走势和历史表。</p>
+</div>
+</div>
 <script>
-let DATA=null, HOLD=null, DIM='distributor', SEL='全部机构', MULTI=null;
+let DATA=null, HOLD=null, DIM='distributor', SEL='全部机构', MULTI=null, VIEW='next';
+const CAL={8:341.20,9:146.30,10:9.16,12:271.94,13:116.70,14:155.03,15:241.77,16:193.55,19:54.44,20:332.72,21:229.79,22:81.60,23:128.60,26:17.17};
 async function load(){
   DATA=await (await fetch('nav-history.json')).json();
   HOLD=await (await fetch('holdings.json')).json();
-  buildInstControls();
-  updateTotals();
-  document.getElementById('todayLine').textContent='今日 +'+HOLD.total_daily_pnl+' · 本月 +'+HOLD.monthly.pnl+' · 2026-10-23 · 持仓以份额为准，总额 = 份额 × 净值';
   const sel=document.getElementById('pSel');
   DATA.products.forEach((p,i)=>{const o=document.createElement('option');o.value=i;o.textContent=p.ledger_name;sel.appendChild(o);});
-  renderHoldings(); render();
+  buildInstControls(); applyView(); renderCalendar(); renderHoldings(); render();
+}
+function latestNav(share){ const n=DATA.products.find(x=>x.share_code===share); return n?n.history_desc[0][1]:null; }
+function amtOf(p){ const nav=latestNav(p.share_code); return nav!=null?p.shares*nav:p.holding_amount; }
+function applyView(){
+  if(VIEW==='today'){
+    document.getElementById('leftTitle').textContent='今日收益总揽';
+    document.getElementById('leftBig').textContent='+128.60 (+0.88)';
+    document.getElementById('leftSub').textContent='2026-10-23 已全部更新';
+    document.getElementById('monthPnl').textContent='+2,302.80';
+    document.getElementById('monthAnn').textContent='+2.02%';
+    document.getElementById('detailTitle').textContent='收益明细 · 2026-10-23';
+    document.getElementById('totalHolding').textContent='1,457,640.87';
+  }else{
+    document.getElementById('leftTitle').textContent='下日提前披露总览';
+    document.getElementById('leftBig').textContent='+17.17';
+    document.getElementById('leftSub').textContent='2026-10-26  1/8 已提前披露';
+    document.getElementById('monthPnl').textContent='+2,319.97';
+    document.getElementById('monthAnn').textContent='+2.03%';
+    document.getElementById('detailTitle').textContent='收益明细 · 2026-10-26';
+    document.getElementById('totalHolding').textContent='1,457,658.04';
+  }
+  document.getElementById('tabToday').className=VIEW==='today'?'on':'';
+  document.getElementById('tabNext').className=VIEW==='next'?'on':'';
+}
+document.getElementById('tabToday').onclick=()=>{VIEW='today';applyView();renderHoldings();};
+document.getElementById('tabNext').onclick=()=>{VIEW='next';applyView();renderHoldings();};
+function renderCalendar(){
+  const wrap=document.getElementById('calendar'); let html=['日','一','二','三','四','五','六'].map(d=>'<div class="muted"><b>'+d+'</b></div>').join('');
+  for(let i=0;i<4;i++) html+='<div></div>';
+  for(let d=1;d<=31;d++){
+    const v=CAL[d];
+    html+='<div class="cell '+(v!=null?'has':'')+'">'+d+(v!=null?'<div class="v">+'+v.toFixed(2)+'</div>':'')+'</div>';
+  }
+  wrap.innerHTML=html;
+}
+function instList(){ return DIM==='distributor'?HOLD.institutions.distributor:HOLD.institutions.manager_short; }
+function instOf(p){ return DIM==='distributor'?p.distributor:p.manager_short; }
+function buildInstControls(){
+  const sel=document.getElementById('instSel'); sel.innerHTML='';
+  ['全部机构',...instList()].forEach(n=>{const o=document.createElement('option');o.value=n;o.textContent=n;sel.appendChild(o);});
+  sel.value=SEL;
+  sel.onchange=()=>{SEL=sel.value;MULTI=null;renderHoldings();};
+  document.getElementById('dTabDist').onclick=()=>{DIM='distributor';SEL='全部机构';MULTI=null;document.getElementById('dTabDist').className='pill on';document.getElementById('dTabMgr').className='pill';buildInstControls();renderHoldings();};
+  document.getElementById('dTabMgr').onclick=()=>{DIM='manager_short';SEL='全部机构';MULTI=null;document.getElementById('dTabDist').className='pill';document.getElementById('dTabMgr').className='pill on';buildInstControls();renderHoldings();};
+  document.getElementById('multiBtn').onclick=()=>{
+    const box=document.getElementById('multiBox'); box.style.display=box.style.display==='block'?'none':'block';
+    if(box.style.display!=='block') return;
+    box.innerHTML=instList().map(n=>'<label style="display:inline-block;margin:4px"><input type="checkbox" value="'+n+'"> '+n+'</label>').join('')+' <button id="multiOk">确定</button>';
+    box.querySelector('#multiOk').onclick=()=>{
+      const checked=[...box.querySelectorAll('input:checked')].map(x=>x.value);
+      MULTI=(checked.length===0||checked.length===instList().length)?null:checked;
+      box.style.display='none'; renderHoldings();
+    };
+  };
+}
+function renderHoldings(){
+  const wrap=document.getElementById('holdings'); let html='';
+  const groups=MULTI?MULTI:(SEL==='全部机构'?instList():[SEL]);
+  groups.forEach(gname=>{
+    const prods=HOLD.products.filter(p=>instOf(p)===gname);
+    let total=0, daily=0;
+    prods.forEach(p=>{
+      if(VIEW==='next' && p.share_code==='NYJXLD1409N'){ total+=100229.66; daily+=17.17; }
+      else { total+=amtOf(p); daily+=p.daily_pnl; }
+    });
+    const wanTxt=total?((daily/total*10000>=0?'+':'')+(daily/total*10000).toFixed(2)):'0.00';
+    html+='<div class="groupHead"><span>'+gname+'('+prods.length+')</span><span style="color:#e60012">'+(daily>=0?'+':'')+daily.toFixed(2)+' 万收('+wanTxt+')</span></div>';
+    if(!prods.length){ html+='<div class="muted" style="padding:10px">暂无持仓明细，持仓总金额 0.00、当日收益 0.00</div>'; return; }
+    prods.forEach(p=>{
+      const nav=latestNav(p.share_code); const other=DIM==='distributor'?('管理：'+p.manager_short):('代销：'+p.distributor);
+      const isEarly=p.share_code==='NYJXLD1409N';
+      if(VIEW==='next' && !isEarly){
+        html+='<div class="card prod" data-share="'+p.share_code+'"><div class="row"><b>'+p.ledger_name+' <span class="muted">('+p.share_code+')</span></b><span style="color:#e60012">未更新</span></div>'
+        +'<div class="prod cols"><div><span class="muted">持有金额</span><b>'+amtOf(p).toLocaleString(undefined,{maximumFractionDigits:2})+'</b></div><div><span class="muted">当日盈亏</span><b>—</b></div><div><span class="muted">本月收益</span><b>—</b></div><div><span class="muted">持仓盈亏</span><b>—</b></div><div><span class="muted">持有年化</span><b>—</b></div></div>'
+        +'<div class="muted">份额 '+p.shares.toLocaleString()+' · 净值 '+(nav!=null?nav:'—')+' · '+other+'</div></div>';
+      }else if(VIEW==='next' && isEarly){
+        html+='<div class="card prod" data-share="'+p.share_code+'"><div class="row"><b>'+p.ledger_name+' <span class="muted">('+p.share_code+')</span></b><span style="color:#2563eb">10-26 (+1.71)</span></div>'
+        +'<div class="prod cols"><div><span class="muted">持有金额</span><b>100,229.66</b></div><div><span class="muted">当日盈亏</span><b>+17.17</b></div><div><span class="muted">本月收益</span><b>+217.31</b></div><div><span class="muted">持仓盈亏</span><b>+229.66</b></div><div><span class="muted">持有年化</span><b>+2.93%</b></div></div>'
+        +'<div class="muted">份额 '+p.shares.toLocaleString()+' · '+other+'</div></div>';
+      }else{
+        html+='<div class="card prod" data-share="'+p.share_code+'"><div class="row"><b>'+p.ledger_name+' <span class="muted">('+p.share_code+')</span></b><span>10-23</span></div>'
+        +'<div class="prod cols"><div><span class="muted">持有金额</span><b>'+amtOf(p).toLocaleString(undefined,{maximumFractionDigits:2})+'</b></div><div><span class="muted">当日盈亏</span><b>'+(p.daily_pnl>=0?'+':'')+p.daily_pnl+'</b></div><div><span class="muted">本月收益</span><b>'+(p.monthly_pnl>=0?'+':'')+p.monthly_pnl+'</b></div><div><span class="muted">持仓盈亏</span><b>'+(p.holding_pnl>=0?'+':'')+p.holding_pnl+'</b></div><div><span class="muted">持有年化</span><b>+'+p.annualized+'%</b></div></div>'
+        +'<div class="muted">份额 '+p.shares.toLocaleString()+' · 净值 '+(nav!=null?nav:'—')+' · '+other+'</div></div>';
+      }
+    });
+  });
+  wrap.innerHTML=html;
+  wrap.querySelectorAll('.prod').forEach(el=>{
+    el.onclick=()=>{
+      const target=[...document.querySelectorAll('#list .card')].find(c=>c.dataset.share===el.dataset.share);
+      if(target){ document.querySelector('details').open=true; target.scrollIntoView({behavior:'smooth'}); target.querySelector('.detail').style.display='block'; const p=DATA.products.find(n=>n.share_code===el.dataset.share); draw(target.querySelector('canvas'), p.history_desc); }
+    };
+  });
 }
 function wan(n,prev){ return prev==null?'—':((n-prev)*10000).toFixed(2); }
 function chg(n,prev){ return prev==null?'—':((n-prev)/prev*100).toFixed(2)+'%'; }
@@ -74,57 +203,6 @@ function draw(canvas, hist){
   ctx.strokeStyle='#5b5bd6'; ctx.lineWidth=3; ctx.beginPath();
   vals.forEach((v,i)=>{const x=pad+i*(W-2*pad)/Math.max(1,vals.length-1); const y=H-pad-(v-mn)/Math.max(0.000001,mx-mn)*(H-2*pad); i?ctx.lineTo(x,y):ctx.moveTo(x,y);});
   ctx.stroke();
-}
-function latestNav(share){ const n=DATA.products.find(x=>x.share_code===share); return n?n.history_desc[0][1]:null; }
-function updateTotals(){
-  let total=0; HOLD.products.forEach(p=>{ const nav=latestNav(p.share_code); if(nav!=null) total+=p.shares*nav; });
-  document.getElementById('totalHolding').textContent=total.toLocaleString(undefined,{maximumFractionDigits:2})+' 元';
-}
-function instList(){ return DIM==='distributor'?HOLD.institutions.distributor:HOLD.institutions.manager_short; }
-function instOf(p){ return DIM==='distributor'?p.distributor:p.manager_short; }
-function buildInstControls(){
-  const sel=document.getElementById('instSel'); sel.innerHTML='';
-  ['全部机构',...instList()].forEach(n=>{const o=document.createElement('option');o.value=n;o.textContent=n;sel.appendChild(o);});
-  sel.value=SEL; document.getElementById('dimLabel').textContent='机构筛选维度：'+(DIM==='distributor'?'代销':'管理')+' · '+(MULTI?'多选':SEL);
-  sel.onchange=()=>{SEL=sel.value;MULTI=null;document.getElementById('dimLabel').textContent='机构筛选维度：'+(DIM==='distributor'?'代销':'管理')+' · '+SEL;renderHoldings();};
-  document.getElementById('tabDist').onclick=()=>{DIM='distributor';SEL='全部机构';MULTI=null;buildInstControls();renderHoldings();};
-  document.getElementById('tabMgr').onclick=()=>{DIM='manager_short';SEL='全部机构';MULTI=null;buildInstControls();renderHoldings();};
-  document.getElementById('multiBtn').onclick=()=>{
-    const box=document.getElementById('multiBox'); box.style.display=box.style.display==='block'?'none':'block';
-    if(box.style.display!=='block') return;
-    box.innerHTML=instList().map(n=>'<label style="display:inline-block;margin:4px"><input type="checkbox" value="'+n+'"> '+n+'</label>').join('')+' <button id="multiOk">确定</button>';
-    box.querySelector('#multiOk').onclick=()=>{
-      const checked=[...box.querySelectorAll('input:checked')].map(x=>x.value);
-      MULTI=(checked.length===0||checked.length===instList().length)?null:checked;
-      document.getElementById('dimLabel').textContent='机构筛选维度：'+(DIM==='distributor'?'代销':'管理')+' · '+(MULTI?MULTI.join('、'):'全部机构');
-      box.style.display='none'; renderHoldings();
-    };
-  };
-}
-function renderHoldings(){
-  const wrap=document.getElementById('holdings'); let html='';
-  const groups=MULTI?MULTI:(SEL==='全部机构'?instList():[SEL]);
-  groups.forEach(gname=>{
-    const prods=HOLD.products.filter(p=>instOf(p)===gname);
-    const total=prods.reduce((s,p)=>{const nav=latestNav(p.share_code);return s+(nav!=null?p.shares*nav:p.holding_amount);},0);
-    const daily=prods.reduce((s,p)=>s+p.daily_pnl,0);
-    const wanTxt=total?((daily/total*10000>=0?'+':'')+(daily/total*10000).toFixed(2)):'0.00';
-    html+='<div class="group">'+gname+'('+prods.length+') · 当日 '+(daily>=0?'+':'')+daily.toFixed(2)+' · 万收('+wanTxt+') · 持仓 '+total.toLocaleString(undefined,{maximumFractionDigits:2})+'</div>';
-    if(!prods.length){ html+='<div class="card muted">暂无持仓明细，持仓总金额 0.00、当日收益 0.00</div>'; return; }
-    prods.forEach(p=>{
-      const nav=latestNav(p.share_code); const amt=nav!=null?p.shares*nav:p.holding_amount;
-      const other=DIM==='distributor'?('管理：'+p.manager_short):('代销：'+p.distributor);
-      html+='<div class="card prod" data-share="'+p.share_code+'"><div class="row"><b>'+p.ledger_name+'</b><span>'+amt.toLocaleString(undefined,{maximumFractionDigits:2})+'</span></div>'
-        +'<div class="row muted"><span>份额 '+p.shares.toLocaleString()+' · 当日 '+(p.daily_pnl>=0?'+':'')+p.daily_pnl+' · 年化 '+p.annualized+'% · '+other+'</span><span>净值 '+(nav!=null?nav:'—')+'</span></div></div>';
-    });
-  });
-  wrap.innerHTML=html;
-  wrap.querySelectorAll('.prod').forEach(el=>{
-    el.onclick=()=>{
-      const target=[...document.querySelectorAll('#list .card')].find(c=>c.dataset.share===el.dataset.share);
-      if(target){ target.scrollIntoView({behavior:'smooth'}); target.querySelector('.detail').style.display='block'; const p=DATA.products.find(n=>n.share_code===el.dataset.share); draw(target.querySelector('canvas'), p.history_desc); }
-    };
-  });
 }
 function render(){
   const wrap=document.getElementById('list'); wrap.innerHTML='';
@@ -142,7 +220,7 @@ document.getElementById('addBtn').onclick=()=>{
   const i=+document.getElementById('pSel').value, d=document.getElementById('dIn').value, n=parseFloat(document.getElementById('nIn').value);
   if(!d||isNaN(n)){document.getElementById('addMsg').textContent='请填写日期和净值';return;}
   const p=DATA.products[i]; p.history_desc=p.history_desc.filter(x=>x[0]!==d); p.history_desc.unshift([d,n]); p.history_desc.sort((a,b)=>b[0].localeCompare(a[0]));
-  document.getElementById('addMsg').textContent='已加入 '+p.ledger_name+' '+d+' '+n+'，总额已按份额×新净值重算，刷新后恢复仓库数据。'; updateTotals(); renderHoldings(); render();
+  document.getElementById('addMsg').textContent='已加入 '+p.ledger_name+' '+d+' '+n+'，刷新后恢复仓库数据。'; renderHoldings(); render();
 };
 document.getElementById('expBtn').onclick=()=>{
   const blob=new Blob([JSON.stringify(DATA,null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='nav-history.json'; a.click();
