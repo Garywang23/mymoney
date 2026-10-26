@@ -52,10 +52,8 @@ a{color:#2563eb}
 <div class="miniGrid">
 <div class="mini"><div class="lab">本月收益</div><div class="val" id="monthPnl">—</div></div>
 <div class="mini"><div class="lab">本月年化</div><div class="val" id="monthAnn">—</div></div>
-<div class="mini"><div class="lab">上月收益</div><div class="val">—</div></div>
-<div class="mini"><div class="lab">上月年化</div><div class="val">—</div></div>
 </div>
-<p class="muted">本月收益、本月年化均由净值算出，不是手动填的。上月需8月净值，30日净值里没有，所以显示 —。</p>
+<p class="muted">只显示能由净值算出来的：本月收益、本月年化均由净值算出。上月需8月净值，30日净值里没有，暂时不显示，等1年净值拿到后再算。</p>
 </div>
 <div class="card">
 <div class="row"><h2>持有资产</h2><a href="#" onclick="return false">趋势与构成 ›</a></div>
@@ -89,7 +87,7 @@ a{color:#2563eb}
 <p id="addMsg" class="muted"></p>
 <div id="list"></div>
 </details>
-<p class="muted">计算公式：当日万收=(当日净值/上一净值-1)×10000；近七日日均=近7个自然日内当日万收之和/7，近14日同理；近7日年化=(当日净值/7日前最近净值-1)×365/实际天数，近14日、近一月同理；成立以来年化需成立日和成立净值，30日净值里没有，所以显示 —。净值来源：中国理财网公开查询，2026-10-26净值仅匠心灵动N有1条（由当日万收反推的近似值，见数据文件备注），其余产品最新仍为2026-10-23。诚享在中国理财网只显示4位小数，由此算出的当日万收会偏粗。</p>
+<p class="muted">计算公式：当日万收=(当日净值/上一净值-1)×10000；近七日日均=近7个自然日内当日万收之和/7，近14日同理；近7日年化=(当日净值/7日前最近净值-1)×365/实际天数，近14日、近一月同理。成立以来年化已按你的要求去掉。净值来源：中国理财网公开查询，2026-10-26净值仅匠心灵动N有1条（由当日万收反推的近似值，见数据文件备注），其余产品最新仍为2026-10-23。诚享在中国理财网只显示4位小数，由此算出的当日万收会偏粗。</p>
 </div>
 </div>
 <script>
@@ -232,17 +230,30 @@ function renderHoldings(){
   });
 }
 function metricsFor(share){
-  const h=histAsc(share); const wan={};
-  for(let i=1;i<h.length;i++) wan[h[i][0]]=(h[i][1]/h[i-1][1]-1)*10000;
+  const hold=HOLD.products.find(p=>p.share_code===share);
+  const h=histAsc(share).filter(x=>x[0]>=hold.purchase_date); const wan={};
+  for(let i=0;i<h.length;i++){
+    if(h[i][0]===hold.purchase_date) continue;
+    let prevNav;
+    if(i===0) prevNav=hold.purchase_nav;
+    else if(h[i-1][0]<hold.purchase_date) prevNav=hold.purchase_nav;
+    else prevNav=h[i-1][1];
+    // first NAV after purchase: prev is purchase_nav, handled by i===0 case when history starts at purchase, otherwise previous entry is purchase date itself
+    if(i>0 && h[i-1][0]===hold.purchase_date) prevNav=hold.purchase_nav;
+    wan[h[i][0]]=(h[i][1]/prevNav-1)*10000;
+  }
   const rows=[];
   h.slice().reverse().forEach(([date,nav])=>{
+    if(date<=hold.purchase_date) return;
     const td=parseD(date);
     const avg=n=>{ let s=0; Object.keys(wan).forEach(d=>{ const dd=parseD(d); if(dd<=td && (td-dd)/86400000 < n) s+=wan[d]; }); return s/n; };
     const ann=windowDays=>{
       const cutoff=new Date(td); cutoff.setDate(cutoff.getDate()-windowDays);
-      const cand=h.filter(x=>parseD(x[0])<=cutoff);
-      if(!cand.length) return null;
-      const base=cand[cand.length-1]; const days=daysBetween(base[0], date); if(days<=0) return null;
+      let cand=h.filter(x=>parseD(x[0])<=cutoff && parseD(x[0])>=parseD(hold.purchase_date));
+      let base, days;
+      if(cand.length){ base=cand[cand.length-1]; days=daysBetween(base[0], date); }
+      else { base=[hold.purchase_date, hold.purchase_nav]; days=daysBetween(hold.purchase_date, date); }
+      if(days<=0) return null;
       return (nav/base[1]-1)*365/days*100;
     };
     rows.push({date, nav, wan:wan[date]!=null?wan[date]:null, avg7:avg(7), avg14:avg(14), ann7:ann(7), ann14:ann(14), ann30:ann(30)});
@@ -266,8 +277,8 @@ function render(){
     const rows=metricsFor(p.share_code);
     const el=document.createElement('div'); el.className='card'; el.dataset.share=p.share_code;
     el.innerHTML='<h3 style="margin:0">'+p.ledger_name+' · '+latest[1]+'</h3><div class="muted">'+p.manager+' · '+p.registration_code+' / '+p.share_code+' · <a href="'+link+'" target="_blank" rel="noopener">中国理财网详情</a></div>'
-      +'<div class="detail"><canvas></canvas><h4>近30自然日数据详情（由净值算出，不是复制的）</h4><table><tr><th>净值日期</th><th>当日万收</th><th>近七日日均</th><th>近14日日均</th><th>近7日年化</th><th>近14日年化</th><th>近一月年化</th><th>成立以来年化</th></tr>'
-      +rows.map(r=>'<tr><td>'+r.date+'</td><td>'+wanTxt(r.wan)+'</td><td>'+r.avg7.toFixed(2)+'</td><td>'+r.avg14.toFixed(2)+'</td><td>'+pctTxt(r.ann7)+'</td><td>'+pctTxt(r.ann14)+'</td><td>'+pctTxt(r.ann30)+'</td><td>—</td></tr>').join('')+'</table></div>';
+      +'<div class="detail"><canvas></canvas><h4>近30自然日数据详情（由净值算出，不是复制的）</h4><table><tr><th>净值日期</th><th>当日万收</th><th>近七日日均</th><th>近14日日均</th><th>近7日年化</th><th>近14日年化</th><th>近一月年化</th></tr>'
+      +rows.map(r=>'<tr><td>'+r.date+'</td><td>'+wanTxt(r.wan)+'</td><td>'+r.avg7.toFixed(2)+'</td><td>'+r.avg14.toFixed(2)+'</td><td>'+pctTxt(r.ann7)+'</td><td>'+pctTxt(r.ann14)+'</td><td>'+pctTxt(r.ann30)+'</td></tr>').join('')+'</table></div>';
     el.querySelector('h3').onclick=()=>{const d=el.querySelector('.detail'); d.style.display=d.style.display==='block'?'none':'block'; if(d.style.display==='block') draw(el.querySelector('canvas'), hist);};
     wrap.appendChild(el);
   });
