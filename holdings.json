@@ -30,7 +30,10 @@
       "ledger_name": "聚宝盈150天1T",
       "monthly_pnl": 491.3,
       "share_code": "WPBK24M0501T",
-      "shares": 380848.12
+      "shares": 380848.12,
+      "distributor": "网商银行",
+      "manager_short": "上银",
+      "manager": "上银理财有限责任公司"
     },
     {
       "annualized": 2.31,
@@ -41,7 +44,10 @@
       "ledger_name": "宁银晶耀90天1A",
       "monthly_pnl": 187.72,
       "share_code": "ZJN2560001A",
-      "shares": 189987.83
+      "shares": 189987.83,
+      "distributor": "网商银行",
+      "manager_short": "宁银",
+      "manager": "宁银理财有限责任公司"
     },
     {
       "annualized": 3.02,
@@ -52,7 +58,10 @@
       "ledger_name": "匠心灵动14天9期",
       "monthly_pnl": 200.14,
       "share_code": "NYJXLD1409N",
-      "shares": 98695.54
+      "shares": 98695.54,
+      "distributor": "网商银行",
+      "manager_short": "农银",
+      "manager": "农银理财有限责任公司"
     },
     {
       "annualized": 2.76,
@@ -63,7 +72,10 @@
       "ledger_name": "财富牛S款91天1A",
       "monthly_pnl": 167.75,
       "share_code": "NYCF000019",
-      "shares": 98387.14
+      "shares": 98387.14,
+      "distributor": "网商银行",
+      "manager_short": "南银",
+      "manager": "南银理财有限责任公司"
     },
     {
       "annualized": 3.19,
@@ -74,7 +86,10 @@
       "ledger_name": "诚享7天29A",
       "monthly_pnl": 509.26,
       "share_code": "YJ01251204A",
-      "shares": 350014.14
+      "shares": 350014.14,
+      "distributor": "微众稳健",
+      "manager_short": "北银",
+      "manager": "北银理财有限责任公司"
     },
     {
       "annualized": 1.7,
@@ -85,7 +100,10 @@
       "ledger_name": "聚宝盈270天1Q",
       "monthly_pnl": 93.66,
       "share_code": "WPBK24M0901Q",
-      "shares": 98589.19
+      "shares": 98589.19,
+      "distributor": "微众稳健",
+      "manager_short": "上银",
+      "manager": "上银理财有限责任公司"
     },
     {
       "annualized": 3.21,
@@ -96,7 +114,10 @@
       "ledger_name": "匠心灵动14天9期G",
       "monthly_pnl": 212.24,
       "share_code": "NYJXLD1409G",
-      "shares": 98444.18
+      "shares": 98444.18,
+      "distributor": "微众稳健",
+      "manager_short": "农银",
+      "manager": "农银理财有限责任公司"
     },
     {
       "annualized": 1.92,
@@ -107,11 +128,34 @@
       "ledger_name": "宁欣28天83E",
       "monthly_pnl": 62.58,
       "share_code": "ZGN2560083E",
-      "shares": 97638.52
+      "shares": 97638.52,
+      "distributor": "微众稳健",
+      "manager_short": "宁银",
+      "manager": "宁银理财有限责任公司"
     }
   ],
   "snapshot_date": "2026-10-23",
   "total_daily_pnl": 128.6,
   "total_holding": 1457640.87,
-  "model": "持仓以份额为准, 总额 = 份额 x 最新净值. 份额由2026-10-23快照金额 / 2026-10-23净值倒推, 非银行确认的 exact 份额, 如银行实际份额不同请以银行为准并修正."
+  "model": "持仓以份额为准, 总额 = 份额 x 最新净值. 份额由2026-10-23快照金额 / 2026-10-23净值倒推, 非银行确认的 exact 份额, 如银行实际份额不同请以银行为准并修正.",
+  "institutions": {
+    "distributor": [
+      "网商银行",
+      "微众稳健",
+      "微众银行"
+    ],
+    "manager_short": [
+      "上银",
+      "北银",
+      "宁银",
+      "农银",
+      "南银",
+      "广银",
+      "华夏",
+      "徽银",
+      "浦银",
+      "苏银"
+    ],
+    "note": "机构分组以2026-10-26 oldox只读核对为准：默认代销/全部机构；代销有持仓的为网商银行、微众稳健，微众银行当日无持仓；管理有持仓的为上银、北银、宁银、农银、南银，广银、华夏、徽银、浦银、苏银当日无分组。管理机构页面只显示简称，全称来自中国理财网核对。"
+  }
 }
