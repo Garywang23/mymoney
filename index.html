@@ -53,7 +53,7 @@ a{color:#2563eb}
 <div class="mini"><div class="lab">本月收益</div><div class="val" id="monthPnl">—</div></div>
 <div class="mini"><div class="lab">本月年化</div><div class="val" id="monthAnn">—</div></div>
 </div>
-<p class="muted">本月收益 = 10月每天“当日份额 × 当日净值涨跌”之和，只算目前8只。目标页日历合计 2,302.80 含已清仓产品当日收益，按你的要求已清仓不录入，所以本页本月合计会比它小，这不是算错。目标页目前8只月收益合计 1,924.65，本页算出 1,908.39（到10-23）+ 匠心灵动N 10-26 的 17.17 = 1,925.56，差 16.26 全在诚享：它在中国理财网只显示4位小数。</p>
+<p class="muted">本月收益 = 10月每天“当日份额 × 当日净值涨跌”之和，只算目前8只。目标页日历合计 2,302.80 含已清仓产品当日收益，按你的要求已清仓不录入，所以本页本月合计会比它小，这不是算错。目标页目前8只月收益合计 1,924.65，本页算出 1,908.39（到10-23），差 16.26 全在诚享：它在中国理财网只显示4位小数。</p>
 </div>
 <div class="card">
 <div class="row"><h2>持有资产</h2><a href="#" onclick="return false">趋势与构成 ›</a></div>
@@ -79,7 +79,7 @@ a{color:#2563eb}
 <div class="card" style="margin-top:16px">
 <div class="row"><h2>产品对比 · 8只</h2><span class="muted">按当日万收从高到低 · 只显示能由净值算出来的</span></div>
 <div id="compareTable" style="overflow-x:auto">正在加载…</div>
-<p class="muted">最新净值日各产品不同：匠心灵动N 为 2026-10-26，其余为 2026-10-23，所以当日收益不是同一天的合计，各看各的最新一天。成立以来年化、3月年化需要成立日/90日净值，30日净值里算不出来，按你的要求不显示。诚享净值只有4位小数，当日万收会偏粗。</p>
+<p class="muted">最新净值日均为 2026-10-23：10-26 净值未在中国理财网查到，不反推、不复制目标页的提前披露数，所以不显示 10-26。成立以来年化、3月年化需要成立日/90日净值，30日净值里算不出来，按你的要求不显示。诚享净值只有4位小数，当日万收会偏粗。</p>
 </div>
 <div class="card" style="margin-top:16px">
 <div class="row"><h2>交易中心</h2><span class="muted">按时间查看买入、卖出与筛选 · 仅目前8只持仓，已清仓不录</span></div>
@@ -99,7 +99,7 @@ a{color:#2563eb}
 <p id="addMsg" class="muted"></p>
 <div id="list"></div>
 </details>
-<p class="muted">最重要：持有年化 = 持仓盈亏 / 本金 × 365 / 持有天数，持仓盈亏 = 份额 ×（最新净值 - 买入净值），本金 = 份额 × 买入净值，持有天数 = 最新净值日 - 买入日，全部从买入日起算，买入日之前的净值不用。其他公式：当日万收=(当日净值/上一净值-1)×10000；近七日日均=近7个自然日内当日万收之和/7，近14日同理；近7日年化=(当日净值/7日前最近净值-1)×365/实际天数，近14日、近一月同理。成立以来年化已按你的要求去掉。净值来源：中国理财网公开查询。注意：本页不能自动获取最新净值，净值历史仍需手动录入（下面“新增一日净值”只是手动填，刷新后恢复仓库数据）。2026-10-26净值仅匠心灵动N有1条（由当日万收反推的近似值，见数据文件备注），其余产品最新仍为2026-10-23。诚享在中国理财网只显示4位小数，由此算出的当日万收会偏粗。</p>
+<p class="muted">最重要：持有年化 = 持仓盈亏 / 本金 × 365 / 持有天数，持仓盈亏 = 份额 ×（最新净值 - 买入净值），本金 = 份额 × 买入净值，持有天数 = 最新净值日 - 买入日，全部从买入日起算，买入日之前的净值不用。其他公式：当日万收=(当日净值/上一净值-1)×10000；近七日日均=近7个自然日内当日万收之和/7，近14日同理；近7日年化=(当日净值/7日前最近净值-1)×365/实际天数，近14日、近一月同理。成立以来年化已按你的要求去掉。净值来源：中国理财网公开查询，全部数据只由这里查到的净值算出。注意：本页不能自动获取最新净值，净值历史仍需手动录入（下面“新增一日净值”只是手动填，刷新后恢复仓库数据）。最新净值日为 2026-10-23，10-26 净值未查到，不反推、不显示。诚享在中国理财网只显示4位小数，由此算出的当日万收、金额会偏粗。</p>
 </div>
 </div>
 <script>
@@ -194,7 +194,7 @@ function applyView(){
   document.getElementById('totalHolding').textContent=total.toLocaleString(undefined,{maximumFractionDigits:2});
   document.getElementById('leftTitle').textContent='收益总揽';
   document.getElementById('leftBig').textContent=total.toLocaleString(undefined,{maximumFractionDigits:2});
-  document.getElementById('leftSub').textContent='持仓总金额（元）= 份额 × 各产品最新净值 · 匠心灵动N 最新 2026-10-26，其余 2026-10-23';
+  document.getElementById('leftSub').textContent='持仓总金额（元）= 份额 × 2026-10-23 净值（中国理财网已查到的最新净值）';
   document.getElementById('detailTitle').textContent='收益明细 · 各产品最新净值日';
   document.getElementById('monthPnl').textContent=fmt(monthTotal);
   document.getElementById('monthAnn').textContent='当前8只10月合计（见说明）';
