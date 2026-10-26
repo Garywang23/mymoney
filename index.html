@@ -67,7 +67,7 @@ a{color:#2563eb}
 <div class="row"><h2>收益日历</h2><span><button class="pill on">日</button> <button class="pill">周</button> <button class="pill">月</button></span></div>
 <div class="row"><button class="pill">‹</button><b>2026年10月</b><button class="pill">›</button></div>
 <div class="cal" id="calendar"></div>
-<p class="muted">日历每天的数 = 当天持有份额 × 当天净值涨跌之和。份额是当天的，不是现在的：比如诚享10-08当天只有 98,842.26 份，不是现在的 350,000 份；宁银晶耀10-08当天是 0 份，10-12 才开始算。点任意有数的日期，下面会展开当天每个产品的份额、净值、收益。</p><div id="calDetail"></div>
+<p class="muted">日历每天的数 = 当天持有份额 × 当天净值涨跌之和。份额是当天的，不是现在的：比如诚享10-08当天只有 98,842.26 份，不是现在的 350,000 份；宁银晶耀10-08当天是 0 份，10-12 才开始算。点任意有数的日期，下面会展开当天每个产品的份额、净值、当日金额、收益，直接和目标页的持有金额、当日盈亏对。</p><div id="calDetail"></div>
 </div>
 <div class="card">
 <div class="row"><h2 id="detailTitle">收益明细</h2><span><button class="pill on">分组</button> <button class="pill">排序</button></span></div>
@@ -232,8 +232,8 @@ function renderCalendar(){
       const box=document.getElementById('calDetail');
       if(!rows){ box.innerHTML=''; return; }
       const oldv=OLD_CAL[ds];
-      let h='<h4 style="margin:12px 0 6px">'+ds+' · 当前8只合计 '+fmt(cal[ds])+(oldv!=null?' · 目标页日历当日合计 '+fmt(oldv)+'，差额 '+fmt(oldv-cal[ds])+'（已清仓当日收益 + 诚享四舍五入误差，10-23当日差额 25.55 全是诚享）':'')+'</h4><table><tr><th>产品</th><th>当日份额</th><th>上一净值日</th><th>上一净值</th><th>当日净值</th><th>当日收益</th></tr>';
-      rows.forEach(r=>{ h+='<tr><td>'+r.name+'</td><td>'+r.shares.toLocaleString()+'</td><td>'+r.prevDate+'</td><td>'+r.prev+'</td><td>'+r.nav+'</td><td>'+fmt(r.gain)+'</td></tr>'; });
+      let totAmt=rows.reduce((a,r)=>a+r.shares*r.nav,0); let h='<h4 style="margin:12px 0 6px">'+ds+' · 当前8只合计 '+fmt(cal[ds])+' · 当日持有金额合计 '+totAmt.toLocaleString(undefined,{maximumFractionDigits:2})+(oldv!=null?' · 目标页日历当日合计 '+fmt(oldv)+'，差额 '+fmt(oldv-cal[ds])+'（已清仓当日收益 + 诚享四舍五入误差，10-23当日差额 25.55 全是诚享）':'')+'</h4><table><tr><th>产品</th><th>当日份额</th><th>上一净值日</th><th>上一净值</th><th>当日净值</th><th>当日金额</th><th>当日收益</th></tr>';
+      rows.forEach(r=>{ h+='<tr><td>'+r.name+'</td><td>'+r.shares.toLocaleString()+'</td><td>'+r.prevDate+'</td><td>'+r.prev+'</td><td>'+r.nav+'</td><td>'+(r.shares*r.nav).toLocaleString(undefined,{maximumFractionDigits:2})+'</td><td>'+fmt(r.gain)+'</td></tr>'; });
       h+='</table><p class="muted">公式：当日收益 = 当日份额 ×（当日净值 - 上一净值）。当日份额按交易净值日算：净值日在当日之前的买入计入，卖出在净值日之后的才扣减。</p>';
       box.innerHTML=h;
     };
