@@ -22,122 +22,154 @@
   "note": "2026-10-23快照, 来源为用户在oldox个人台账的自填持仓记录, 未与银行账户直接核对, 以银行App/对账单为准. 持仓金额为快照日金额, 净值更新后持仓金额会随净值变化, 本文件为快照起点. 份额倒推见model.",
   "products": [
     {
-      "annualized": 2.21,
-      "daily_pnl": 57.13,
       "group": "网商银行",
-      "holding_amount": 401154.94,
-      "holding_pnl": 1154.94,
       "ledger_name": "聚宝盈150天1T",
-      "monthly_pnl": 491.3,
       "share_code": "WPBK24M0501T",
       "shares": 380848.12,
       "distributor": "网商银行",
       "manager_short": "上银",
-      "manager": "上银理财有限责任公司"
+      "manager": "上银理财有限责任公司",
+      "purchase_date": "2026-09-04",
+      "purchase_nav": 1.050287,
+      "snapshot_2026_10_23": {
+        "holding_amount": 401154.94,
+        "daily_pnl": 57.13,
+        "monthly_pnl": 491.3,
+        "holding_pnl": 1154.94,
+        "annualized": 2.21
+      }
     },
     {
-      "annualized": 2.31,
-      "daily_pnl": 17.48,
       "group": "网商银行",
-      "holding_amount": 200187.71,
-      "holding_pnl": 187.71,
       "ledger_name": "宁银晶耀90天1A",
-      "monthly_pnl": 187.72,
       "share_code": "ZJN2560001A",
       "shares": 189987.83,
       "distributor": "网商银行",
       "manager_short": "宁银",
-      "manager": "宁银理财有限责任公司"
+      "manager": "宁银理财有限责任公司",
+      "purchase_date": "2026-10-09",
+      "purchase_nav": 1.052699,
+      "snapshot_2026_10_23": {
+        "holding_amount": 200187.71,
+        "daily_pnl": 17.48,
+        "monthly_pnl": 187.72,
+        "holding_pnl": 187.71,
+        "annualized": 2.31
+      }
     },
     {
-      "annualized": 3.02,
-      "daily_pnl": 7.11,
       "group": "网商银行",
-      "holding_amount": 100212.49,
-      "holding_pnl": 212.49,
       "ledger_name": "匠心灵动14天9期",
-      "monthly_pnl": 200.14,
       "share_code": "NYJXLD1409N",
       "shares": 98695.54,
       "distributor": "网商银行",
       "manager_short": "农银",
-      "manager": "农银理财有限责任公司"
+      "manager": "农银理财有限责任公司",
+      "purchase_date": "2026-09-28",
+      "purchase_nav": 1.013217,
+      "snapshot_2026_10_23": {
+        "holding_amount": 100212.49,
+        "daily_pnl": 7.11,
+        "monthly_pnl": 200.14,
+        "holding_pnl": 212.49,
+        "annualized": 3.02
+      }
     },
     {
-      "annualized": 2.76,
-      "daily_pnl": -7.48,
       "group": "网商银行",
-      "holding_amount": 100246.26,
-      "holding_pnl": 246.26,
       "ledger_name": "财富牛S款91天1A",
-      "monthly_pnl": 167.75,
       "share_code": "NYCF000019",
       "shares": 98387.14,
       "distributor": "网商银行",
       "manager_short": "南银",
-      "manager": "南银理财有限责任公司"
+      "manager": "南银理财有限责任公司",
+      "purchase_date": "2026-09-21",
+      "purchase_nav": 1.016393,
+      "snapshot_2026_10_23": {
+        "holding_amount": 100246.26,
+        "daily_pnl": -7.48,
+        "monthly_pnl": 167.75,
+        "holding_pnl": 246.26,
+        "annualized": 2.76
+      }
     },
     {
-      "annualized": 3.19,
-      "daily_pnl": 25.55,
       "group": "微众稳健",
-      "holding_amount": 355334.35,
-      "holding_pnl": 602.9,
       "ledger_name": "诚享7天29A",
-      "monthly_pnl": 509.26,
       "share_code": "YJ01251204A",
       "shares": 350014.14,
       "distributor": "微众稳健",
       "manager_short": "北银",
-      "manager": "北银理财有限责任公司"
+      "manager": "北银理财有限责任公司",
+      "purchase_date": "2026-09-30",
+      "purchase_nav": 1.013477,
+      "snapshot_2026_10_23": {
+        "holding_amount": 355334.35,
+        "daily_pnl": 25.55,
+        "monthly_pnl": 509.26,
+        "holding_pnl": 602.9,
+        "annualized": 3.19
+      }
     },
     {
-      "annualized": 1.7,
-      "daily_pnl": 14.79,
       "group": "微众稳健",
-      "holding_amount": 100216.9,
-      "holding_pnl": 216.9,
       "ledger_name": "聚宝盈270天1Q",
-      "monthly_pnl": 93.66,
       "share_code": "WPBK24M0901Q",
       "shares": 98589.19,
       "distributor": "微众稳健",
       "manager_short": "上银",
-      "manager": "上银理财有限责任公司"
+      "manager": "上银理财有限责任公司",
+      "purchase_date": "2026-09-07",
+      "purchase_nav": 1.01431,
+      "snapshot_2026_10_23": {
+        "holding_amount": 100216.9,
+        "daily_pnl": 14.79,
+        "monthly_pnl": 93.66,
+        "holding_pnl": 216.9,
+        "annualized": 1.7
+      }
     },
     {
-      "annualized": 3.21,
-      "daily_pnl": 7.38,
       "group": "微众稳健",
-      "holding_amount": 100225.63,
-      "holding_pnl": 225.63,
       "ledger_name": "匠心灵动14天9期G",
-      "monthly_pnl": 212.24,
       "share_code": "NYJXLD1409G",
       "shares": 98444.18,
       "distributor": "微众稳健",
       "manager_short": "农银",
-      "manager": "农银理财有限责任公司"
+      "manager": "农银理财有限责任公司",
+      "purchase_date": "2026-09-28",
+      "purchase_nav": 1.015804,
+      "snapshot_2026_10_23": {
+        "holding_amount": 100225.63,
+        "daily_pnl": 7.38,
+        "monthly_pnl": 212.24,
+        "holding_pnl": 225.63,
+        "annualized": 3.21
+      }
     },
     {
-      "annualized": 1.92,
-      "daily_pnl": 6.64,
       "group": "微众稳健",
-      "holding_amount": 100062.59,
-      "holding_pnl": 62.59,
       "ledger_name": "宁欣28天83E",
-      "monthly_pnl": 62.58,
       "share_code": "ZGN2560083E",
       "shares": 97638.52,
       "distributor": "微众稳健",
       "manager_short": "宁银",
-      "manager": "宁银理财有限责任公司"
+      "manager": "宁银理财有限责任公司",
+      "purchase_date": "2026-10-12",
+      "purchase_nav": 1.024186,
+      "snapshot_2026_10_23": {
+        "holding_amount": 100062.59,
+        "daily_pnl": 6.64,
+        "monthly_pnl": 62.58,
+        "holding_pnl": 62.59,
+        "annualized": 1.92
+      }
     }
   ],
   "snapshot_date": "2026-10-23",
   "total_daily_pnl": 128.6,
   "total_holding": 1457640.87,
-  "model": "持仓以份额为准, 总额 = 份额 x 最新净值. 份额由2026-10-23快照金额 / 2026-10-23净值倒推, 非银行确认的 exact 份额, 如银行实际份额不同请以银行为准并修正.",
+  "model": "仅输入份额、买入日、买入净值；其余全部由净值历史计算：金额=份额x最新净值，当日=份额x(最新-上一净值)，本月=份额x(最新-月初净值，月初净值为买入净值或上月末净值中较晚者)，持仓盈亏=份额x(最新-买入净值)，持有年化=持仓盈亏/本金x365/持有天数。本金=份额x买入净值。",
   "institutions": {
     "distributor": [
       "网商银行",

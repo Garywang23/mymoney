@@ -8,7 +8,7 @@
 *{box-sizing:border-box}
 body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;margin:0;background:#7a6df0;color:#222}
 .wrap{max-width:1080px;margin:0 auto;padding:18px 14px 28px}
-.topTabs{display:flex;gap:0;background:#e9e6fb;border-radius:12px;padding:4px;margin-bottom:16px}
+.topTabs{display:flex;background:#e9e6fb;border-radius:12px;padding:4px;margin-bottom:16px}
 .topTabs button{flex:1;border:0;background:transparent;padding:10px;border-radius:9px;font-size:15px;cursor:pointer;color:#555}
 .topTabs button.on{background:#fff;font-weight:700;color:#222;box-shadow:0 1px 4px rgba(0,0,0,.12)}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
@@ -47,31 +47,32 @@ a{color:#2563eb}
 <div class="grid">
 <div class="card">
 <div class="row"><h2 id="leftTitle">下日提前披露总览</h2><button class="pill" onclick="location.reload()">刷新</button></div>
-<div class="big" id="leftBig">+17.17</div>
-<div class="center" id="leftSub">2026-10-26&nbsp;&nbsp;1/8 已提前披露</div>
+<div class="big" id="leftBig">—</div>
+<div class="center" id="leftSub">—</div>
 <div class="miniGrid">
-<div class="mini"><div class="lab">本月收益</div><div class="val" id="monthPnl">+2,319.97</div></div>
-<div class="mini"><div class="lab">本月年化</div><div class="val" id="monthAnn">+2.03%</div></div>
-<div class="mini"><div class="lab">上月收益</div><div class="val">+1,998.67</div></div>
-<div class="mini"><div class="lab">上月年化</div><div class="val">+2.06%</div></div>
+<div class="mini"><div class="lab">本月收益</div><div class="val" id="monthPnl">—</div></div>
+<div class="mini"><div class="lab">本月年化</div><div class="val" id="monthAnn">—</div></div>
+<div class="mini"><div class="lab">上月收益</div><div class="val">—</div></div>
+<div class="mini"><div class="lab">上月年化</div><div class="val">—</div></div>
 </div>
+<p class="muted">本月收益、本月年化均由净值算出，不是手动填的。上月需8月净值，30日净值里没有，所以显示 —。</p>
 </div>
 <div class="card">
 <div class="row"><h2>持有资产</h2><a href="#" onclick="return false">趋势与构成 ›</a></div>
-<div class="center">持仓总金额（元）</div>
+<div class="center">持仓总金额（元）= 份额 × 最新净值</div>
 <div class="big" id="totalHolding">—</div>
 <div class="row" style="background:#f3f2fb;border-radius:10px;padding:10px;margin-top:14px"><span class="muted">在途交易<br>买入 1 笔</span><a href="#" onclick="return false">查看 ›</a></div>
 <div class="row" style="margin-top:14px"><span>交易中心<br><span class="muted">按时间查看买入、卖出与筛选</span></span><button class="pill on">进入</button></div>
-<p class="muted" style="margin-top:12px">持仓以份额为准，总额 = 份额 × 净值。在途交易、交易中心仅为展示，不连接银行、不做交易。</p>
+<p class="muted">在途交易、交易中心仅为展示，不连接银行、不做交易。</p>
 </div>
 <div class="card">
 <div class="row"><h2>收益日历</h2><span><button class="pill on">日</button> <button class="pill">周</button> <button class="pill">月</button></span></div>
 <div class="row"><button class="pill">‹</button><b>2026年10月</b><button class="pill">›</button></div>
 <div class="cal" id="calendar"></div>
-<p class="muted">与小程序一致：可查北京时间近三个自然月（本月 + 上月 + 上上月）。粉色为有收益的日期。</p>
+<p class="muted">日历每天的数 = 当天所有产品份额 × 当天净值涨跌之和，由净值算出，不是手动填的。买入日之前的涨跌不计入。</p>
 </div>
 <div class="card">
-<div class="row"><h2 id="detailTitle">收益明细 · 2026-10-26</h2><span><button class="pill on">分组</button> <button class="pill">排序</button></span></div>
+<div class="row"><h2 id="detailTitle">收益明细</h2><span><button class="pill on">分组</button> <button class="pill">排序</button></span></div>
 <div style="margin-top:10px"><button class="pill on" id="dTabDist">代销</button> <button class="pill" id="dTabMgr">管理</button> <select id="instSel"></select> <button class="pill" id="multiBtn">多选</button></div>
 <div id="multiBox" style="display:none;margin-top:8px"></div>
 <div id="holdings">正在加载…</div>
@@ -79,7 +80,7 @@ a{color:#2563eb}
 </div>
 <div class="card" style="margin-top:16px">
 <details>
-<summary>新增一日净值 / 导出 / 净值历史</summary>
+<summary>新增一日净值 / 导出 / 净值历史与近30自然日指标（全部由净值算出）</summary>
 <label>产品 <select id="pSel"></select></label>
 <label>日期 <input id="dIn" type="date" value="2026-10-27"></label>
 <label>净值 <input id="nIn" type="number" step="0.000001" placeholder="1.0190"></label>
@@ -88,12 +89,14 @@ a{color:#2563eb}
 <p id="addMsg" class="muted"></p>
 <div id="list"></div>
 </details>
-<p class="muted">净值来源：中国理财网公开查询，最新净值日 2026-10-23（提前披露除外）。持仓为自填记录，以银行 App / 对账单为准。过往业绩不代表未来表现。点产品可展开净值走势和历史表。</p>
+<p class="muted">计算公式：当日万收=(当日净值/上一净值-1)×10000；近七日日均=近7个自然日内当日万收之和/7，近14日同理；近7日年化=(当日净值/7日前最近净值-1)×365/实际天数，近14日、近一月同理；成立以来年化需成立日和成立净值，30日净值里没有，所以显示 —。净值来源：中国理财网公开查询，2026-10-26净值仅匠心灵动N有1条（由当日万收反推的近似值，见数据文件备注），其余产品最新仍为2026-10-23。诚享在中国理财网只显示4位小数，由此算出的当日万收会偏粗。</p>
 </div>
 </div>
 <script>
 let DATA=null, HOLD=null, DIM='distributor', SEL='全部机构', MULTI=null, VIEW='next';
-const CAL={8:341.20,9:146.30,10:9.16,12:271.94,13:116.70,14:155.03,15:241.77,16:193.55,19:54.44,20:332.72,21:229.79,22:81.60,23:128.60,26:17.17};
+const fmt=(n,d=2)=> (n>=0?'+':'')+n.toFixed(d);
+const parseD=s=>new Date(s+'T00:00:00');
+const daysBetween=(a,b)=>Math.round((parseD(b)-parseD(a))/86400000);
 async function load(){
   DATA=await (await fetch('nav-history.json')).json();
   HOLD=await (await fetch('holdings.json')).json();
@@ -101,26 +104,61 @@ async function load(){
   DATA.products.forEach((p,i)=>{const o=document.createElement('option');o.value=i;o.textContent=p.ledger_name;sel.appendChild(o);});
   buildInstControls(); applyView(); renderCalendar(); renderHoldings(); render();
 }
-function latestNav(share){ const n=DATA.products.find(x=>x.share_code===share); return n?n.history_desc[0][1]:null; }
-function amtOf(p){ const nav=latestNav(p.share_code); return nav!=null?p.shares*nav:p.holding_amount; }
+function navProd(share){ return DATA.products.find(x=>x.share_code===share); }
+function histAsc(share){ return navProd(share).history_desc.slice().sort((a,b)=>a[0].localeCompare(b[0])); }
+function navAsOf(share, dateStr){
+  const h=histAsc(share).filter(x=>x[0]<=dateStr);
+  return h.length?h[h.length-1]:null;
+}
+function prevNav(share, dateStr){
+  const h=histAsc(share).filter(x=>x[0]<=dateStr);
+  return h.length>1?h[h.length-2]:null;
+}
+function calc(share, asOf){
+  const hold=HOLD.products.find(p=>p.share_code===share);
+  const cur=navAsOf(share, asOf); if(!cur) return null;
+  const prev=prevNav(share, asOf);
+  const amount=hold.shares*cur[1];
+  const daily=prev?hold.shares*(cur[1]-prev[1]):0;
+  const month=cur[0].slice(0,7);
+  const beforeMonth=histAsc(share).filter(x=>x[0]<month+'-01');
+  let monthStartNav, monthStartDate;
+  if(hold.purchase_date.slice(0,7)===month){ monthStartNav=hold.purchase_nav; monthStartDate=hold.purchase_date; }
+  else if(beforeMonth.length){ monthStartNav=beforeMonth[beforeMonth.length-1][1]; monthStartDate=beforeMonth[beforeMonth.length-1][0]; }
+  else { monthStartNav=null; monthStartDate=null; }
+  const monthly=monthStartNav!=null?hold.shares*(cur[1]-monthStartNav):0;
+  const holdingPnl=hold.shares*(cur[1]-hold.purchase_nav);
+  const principal=hold.shares*hold.purchase_nav;
+  const daysHeld=daysBetween(hold.purchase_date, cur[0]);
+  const holdingAnn=daysHeld>0?holdingPnl/principal*365/daysHeld*100:0;
+  return {hold, cur, prev, amount, daily, monthly, holdingPnl, holdingAnn, monthStartNav, monthStartDate, principal, daysHeld};
+}
+function viewAsOf(share){
+  if(VIEW==='today') return '2026-10-23';
+  const h=histAsc(share); return h[h.length-1][0];
+}
 function applyView(){
+  let total=0, dailyTotal=0, monthlyTotal=0, monthStartTotal=0, disclosed=0, totalProducts=HOLD.products.length;
+  HOLD.products.forEach(p=>{
+    const asOf=viewAsOf(p.share_code); const c=calc(p.share_code, asOf);
+    total+=c.amount; dailyTotal+= (VIEW==='next' && asOf==='2026-10-23' ? 0 : c.daily); monthlyTotal+=c.monthly; monthStartTotal+=c.amount-c.monthly;
+    if(asOf>'2026-10-23') disclosed++;
+  });
+  document.getElementById('totalHolding').textContent=total.toLocaleString(undefined,{maximumFractionDigits:2});
   if(VIEW==='today'){
     document.getElementById('leftTitle').textContent='今日收益总揽';
-    document.getElementById('leftBig').textContent='+128.60 (+0.88)';
-    document.getElementById('leftSub').textContent='2026-10-23 已全部更新';
-    document.getElementById('monthPnl').textContent='+2,302.80';
-    document.getElementById('monthAnn').textContent='+2.02%';
+    document.getElementById('leftBig').textContent=fmt(dailyTotal)+' ('+fmt(dailyTotal/total*100)+')';
+    document.getElementById('leftSub').textContent='2026-10-23 已全部更新（由净值算出）';
     document.getElementById('detailTitle').textContent='收益明细 · 2026-10-23';
-    document.getElementById('totalHolding').textContent='1,457,640.87';
   }else{
     document.getElementById('leftTitle').textContent='下日提前披露总览';
-    document.getElementById('leftBig').textContent='+17.17';
-    document.getElementById('leftSub').textContent='2026-10-26  1/8 已提前披露';
-    document.getElementById('monthPnl').textContent='+2,319.97';
-    document.getElementById('monthAnn').textContent='+2.03%';
+    document.getElementById('leftBig').textContent=fmt(dailyTotal);
+    document.getElementById('leftSub').textContent='2026-10-26  '+disclosed+'/'+totalProducts+' 已提前披露（由净值算出）';
     document.getElementById('detailTitle').textContent='收益明细 · 2026-10-26';
-    document.getElementById('totalHolding').textContent='1,457,658.04';
   }
+  document.getElementById('monthPnl').textContent=fmt(monthlyTotal);
+  const monthDays=23; // 2026-09-30 到 2026-10-23 的实际天数，近似用月初净值日到最新日
+  document.getElementById('monthAnn').textContent=monthStartTotal?fmt(monthlyTotal/monthStartTotal*365/23*100)+'%':'—';
   document.getElementById('tabToday').className=VIEW==='today'?'on':'';
   document.getElementById('tabNext').className=VIEW==='next'?'on':'';
 }
@@ -129,9 +167,20 @@ document.getElementById('tabNext').onclick=()=>{VIEW='next';applyView();renderHo
 function renderCalendar(){
   const wrap=document.getElementById('calendar'); let html=['日','一','二','三','四','五','六'].map(d=>'<div class="muted"><b>'+d+'</b></div>').join('');
   for(let i=0;i<4;i++) html+='<div></div>';
+  const cal={};
+  HOLD.products.forEach(p=>{
+    const h=histAsc(p.share_code);
+    for(let i=1;i<h.length;i++){
+      const d=h[i][0]; if(!d.startsWith('2026-10')) continue;
+      if(d<=p.purchase_date) continue;
+      let prevNav=h[i-1][1];
+      if(h[i-1][0]<=p.purchase_date) prevNav=p.purchase_nav;
+      cal[d]=(cal[d]||0)+p.shares*(h[i][1]-prevNav);
+    }
+  });
   for(let d=1;d<=31;d++){
-    const v=CAL[d];
-    html+='<div class="cell '+(v!=null?'has':'')+'">'+d+(v!=null?'<div class="v">+'+v.toFixed(2)+'</div>':'')+'</div>';
+    const ds='2026-10-'+String(d).padStart(2,'0'); const v=cal[ds];
+    html+='<div class="cell '+(v!=null?'has':'')+'">'+d+(v!=null?'<div class="v">'+fmt(v)+'</div>':'')+'</div>';
   }
   wrap.innerHTML=html;
 }
@@ -161,29 +210,17 @@ function renderHoldings(){
   groups.forEach(gname=>{
     const prods=HOLD.products.filter(p=>instOf(p)===gname);
     let total=0, daily=0;
-    prods.forEach(p=>{
-      if(VIEW==='next' && p.share_code==='NYJXLD1409N'){ total+=100229.66; daily+=17.17; }
-      else { total+=amtOf(p); daily+=p.daily_pnl; }
-    });
-    const wanTxt=total?((daily/total*10000>=0?'+':'')+(daily/total*10000).toFixed(2)):'0.00';
-    html+='<div class="groupHead"><span>'+gname+'('+prods.length+')</span><span style="color:#e60012">'+(daily>=0?'+':'')+daily.toFixed(2)+' 万收('+wanTxt+')</span></div>';
+    prods.forEach(p=>{ const c=calc(p.share_code, viewAsOf(p.share_code)); total+=c.amount; if(!(VIEW==='next' && viewAsOf(p.share_code)==='2026-10-23')) daily+=c.daily; });
+    const wanTxt=total?fmt(daily/total*10000):'0.00';
+    html+='<div class="groupHead"><span>'+gname+'('+prods.length+')</span><span style="color:#e60012">'+fmt(daily)+' 万收('+wanTxt+')</span></div>';
     if(!prods.length){ html+='<div class="muted" style="padding:10px">暂无持仓明细，持仓总金额 0.00、当日收益 0.00</div>'; return; }
     prods.forEach(p=>{
-      const nav=latestNav(p.share_code); const other=DIM==='distributor'?('管理：'+p.manager_short):('代销：'+p.distributor);
-      const isEarly=p.share_code==='NYJXLD1409N';
-      if(VIEW==='next' && !isEarly){
-        html+='<div class="card prod" data-share="'+p.share_code+'"><div class="row"><b>'+p.ledger_name+' <span class="muted">('+p.share_code+')</span></b><span style="color:#e60012">未更新</span></div>'
-        +'<div class="prod cols"><div><span class="muted">持有金额</span><b>'+amtOf(p).toLocaleString(undefined,{maximumFractionDigits:2})+'</b></div><div><span class="muted">当日盈亏</span><b>—</b></div><div><span class="muted">本月收益</span><b>—</b></div><div><span class="muted">持仓盈亏</span><b>—</b></div><div><span class="muted">持有年化</span><b>—</b></div></div>'
-        +'<div class="muted">份额 '+p.shares.toLocaleString()+' · 净值 '+(nav!=null?nav:'—')+' · '+other+'</div></div>';
-      }else if(VIEW==='next' && isEarly){
-        html+='<div class="card prod" data-share="'+p.share_code+'"><div class="row"><b>'+p.ledger_name+' <span class="muted">('+p.share_code+')</span></b><span style="color:#2563eb">10-26 (+1.71)</span></div>'
-        +'<div class="prod cols"><div><span class="muted">持有金额</span><b>100,229.66</b></div><div><span class="muted">当日盈亏</span><b>+17.17</b></div><div><span class="muted">本月收益</span><b>+217.31</b></div><div><span class="muted">持仓盈亏</span><b>+229.66</b></div><div><span class="muted">持有年化</span><b>+2.93%</b></div></div>'
-        +'<div class="muted">份额 '+p.shares.toLocaleString()+' · '+other+'</div></div>';
-      }else{
-        html+='<div class="card prod" data-share="'+p.share_code+'"><div class="row"><b>'+p.ledger_name+' <span class="muted">('+p.share_code+')</span></b><span>10-23</span></div>'
-        +'<div class="prod cols"><div><span class="muted">持有金额</span><b>'+amtOf(p).toLocaleString(undefined,{maximumFractionDigits:2})+'</b></div><div><span class="muted">当日盈亏</span><b>'+(p.daily_pnl>=0?'+':'')+p.daily_pnl+'</b></div><div><span class="muted">本月收益</span><b>'+(p.monthly_pnl>=0?'+':'')+p.monthly_pnl+'</b></div><div><span class="muted">持仓盈亏</span><b>'+(p.holding_pnl>=0?'+':'')+p.holding_pnl+'</b></div><div><span class="muted">持有年化</span><b>+'+p.annualized+'%</b></div></div>'
-        +'<div class="muted">份额 '+p.shares.toLocaleString()+' · 净值 '+(nav!=null?nav:'—')+' · '+other+'</div></div>';
-      }
+      const asOf=viewAsOf(p.share_code); const c=calc(p.share_code, asOf); const other=DIM==='distributor'?('管理：'+p.manager_short):('代销：'+p.distributor);
+      const updated=!(VIEW==='next' && asOf==='2026-10-23');
+      const badge=VIEW==='next' ? (updated ? (asOf.slice(5)+' ('+fmt(c.daily/c.amount*10000)+')') : '未更新') : asOf.slice(5);
+      html+='<div class="card prod" data-share="'+p.share_code+'"><div class="row"><b>'+p.ledger_name+' <span class="muted">('+p.share_code+')</span></b><span style="color:'+(updated?'#2563eb':'#e60012')+'">'+badge+'</span></div>'
+        +'<div class="prod cols"><div><span class="muted">持有金额</span><b>'+c.amount.toLocaleString(undefined,{maximumFractionDigits:2})+'</b></div><div><span class="muted">当日盈亏</span><b>'+(updated?fmt(c.daily):'—')+'</b></div><div><span class="muted">本月收益</span><b>'+fmt(c.monthly)+'</b></div><div><span class="muted">持仓盈亏</span><b>'+fmt(c.holdingPnl)+'</b></div><div><span class="muted">持有年化</span><b>'+fmt(c.holdingAnn)+'%</b></div></div>'
+        +'<div class="muted">份额 '+p.shares.toLocaleString()+' · 净值 '+c.cur[1]+'（'+c.cur[0]+'） · '+other+'</div></div>';
     });
   });
   wrap.innerHTML=html;
@@ -194,11 +231,29 @@ function renderHoldings(){
     };
   });
 }
-function wan(n,prev){ return prev==null?'—':((n-prev)*10000).toFixed(2); }
-function chg(n,prev){ return prev==null?'—':((n-prev)/prev*100).toFixed(2)+'%'; }
+function metricsFor(share){
+  const h=histAsc(share); const wan={};
+  for(let i=1;i<h.length;i++) wan[h[i][0]]=(h[i][1]/h[i-1][1]-1)*10000;
+  const rows=[];
+  h.slice().reverse().forEach(([date,nav])=>{
+    const td=parseD(date);
+    const avg=n=>{ let s=0; Object.keys(wan).forEach(d=>{ const dd=parseD(d); if(dd<=td && (td-dd)/86400000 < n) s+=wan[d]; }); return s/n; };
+    const ann=windowDays=>{
+      const cutoff=new Date(td); cutoff.setDate(cutoff.getDate()-windowDays);
+      const cand=h.filter(x=>parseD(x[0])<=cutoff);
+      if(!cand.length) return null;
+      const base=cand[cand.length-1]; const days=daysBetween(base[0], date); if(days<=0) return null;
+      return (nav/base[1]-1)*365/days*100;
+    };
+    rows.push({date, nav, wan:wan[date]!=null?wan[date]:null, avg7:avg(7), avg14:avg(14), ann7:ann(7), ann14:ann(14), ann30:ann(30)});
+  });
+  return rows;
+}
+function wanTxt(n){ return n==null?'—':n.toFixed(2); }
+function pctTxt(n){ return n==null?'—':fmt(n)+'%'; }
 function draw(canvas, hist){
   const ctx=canvas.getContext('2d'); const W=canvas.width=canvas.offsetWidth*2, H=canvas.height=220;
-  ctx.clearRect(0,0,W,H); const vals=hist.map(x=>x[1]).slice().reverse();
+  ctx.clearRect(0,0,W,H); const vals=hist.slice().sort((a,b)=>a[0].localeCompare(b[0])).map(x=>x[1]);
   const mn=Math.min(...vals), mx=Math.max(...vals), pad=16;
   ctx.strokeStyle='#5b5bd6'; ctx.lineWidth=3; ctx.beginPath();
   vals.forEach((v,i)=>{const x=pad+i*(W-2*pad)/Math.max(1,vals.length-1); const y=H-pad-(v-mn)/Math.max(0.000001,mx-mn)*(H-2*pad); i?ctx.lineTo(x,y):ctx.moveTo(x,y);});
@@ -207,11 +262,12 @@ function draw(canvas, hist){
 function render(){
   const wrap=document.getElementById('list'); wrap.innerHTML='';
   DATA.products.forEach(p=>{
-    const hist=p.history_desc, latest=hist[0], link='https://xinxipilu.chinawealth.com.cn/queryMenu/prodType/prodTypeDetail?prodRegCode='+p.registration_code;
+    const hist=p.history_desc, latest=hist.slice().sort((a,b)=>b[0].localeCompare(a[0]))[0], link='https://xinxipilu.chinawealth.com.cn/queryMenu/prodType/prodTypeDetail?prodRegCode='+p.registration_code;
+    const rows=metricsFor(p.share_code);
     const el=document.createElement('div'); el.className='card'; el.dataset.share=p.share_code;
     el.innerHTML='<h3 style="margin:0">'+p.ledger_name+' · '+latest[1]+'</h3><div class="muted">'+p.manager+' · '+p.registration_code+' / '+p.share_code+' · <a href="'+link+'" target="_blank" rel="noopener">中国理财网详情</a></div>'
-      +'<div class="detail"><canvas></canvas><table><tr><th>日期</th><th>净值</th><th>日涨跌</th><th>万收</th></tr>'
-      +hist.map((row,i)=>{const prev=hist[i+1]?hist[i+1][1]:null; return '<tr><td>'+row[0]+'</td><td>'+row[1]+'</td><td>'+chg(row[1],prev)+'</td><td>'+wan(row[1],prev)+'</td></tr>';}).join('')+'</table></div>';
+      +'<div class="detail"><canvas></canvas><h4>近30自然日数据详情（由净值算出，不是复制的）</h4><table><tr><th>净值日期</th><th>当日万收</th><th>近七日日均</th><th>近14日日均</th><th>近7日年化</th><th>近14日年化</th><th>近一月年化</th><th>成立以来年化</th></tr>'
+      +rows.map(r=>'<tr><td>'+r.date+'</td><td>'+wanTxt(r.wan)+'</td><td>'+r.avg7.toFixed(2)+'</td><td>'+r.avg14.toFixed(2)+'</td><td>'+pctTxt(r.ann7)+'</td><td>'+pctTxt(r.ann14)+'</td><td>'+pctTxt(r.ann30)+'</td><td>—</td></tr>').join('')+'</table></div>';
     el.querySelector('h3').onclick=()=>{const d=el.querySelector('.detail'); d.style.display=d.style.display==='block'?'none':'block'; if(d.style.display==='block') draw(el.querySelector('canvas'), hist);};
     wrap.appendChild(el);
   });
@@ -220,7 +276,7 @@ document.getElementById('addBtn').onclick=()=>{
   const i=+document.getElementById('pSel').value, d=document.getElementById('dIn').value, n=parseFloat(document.getElementById('nIn').value);
   if(!d||isNaN(n)){document.getElementById('addMsg').textContent='请填写日期和净值';return;}
   const p=DATA.products[i]; p.history_desc=p.history_desc.filter(x=>x[0]!==d); p.history_desc.unshift([d,n]); p.history_desc.sort((a,b)=>b[0].localeCompare(a[0]));
-  document.getElementById('addMsg').textContent='已加入 '+p.ledger_name+' '+d+' '+n+'，刷新后恢复仓库数据。'; renderHoldings(); render();
+  document.getElementById('addMsg').textContent='已加入 '+p.ledger_name+' '+d+' '+n+'，全部指标已由净值重算，刷新后恢复仓库数据。'; applyView(); renderCalendar(); renderHoldings(); render();
 };
 document.getElementById('expBtn').onclick=()=>{
   const blob=new Blob([JSON.stringify(DATA,null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='nav-history.json'; a.click();
