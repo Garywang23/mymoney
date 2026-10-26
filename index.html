@@ -5,108 +5,65 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>个人台账</title>
 <style>
-*{box-sizing:border-box}
-body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;margin:0;background:#eef0f7;color:#222}
-header{background:linear-gradient(135deg,#5b5bd6,#7c6cf0);color:#fff;padding:20px 16px 28px;text-align:center}
-header h1{margin:0;font-size:22px;letter-spacing:2px}
-header p{margin:8px 0 0;color:#e6e6ff;font-size:13px;line-height:1.6}
-main{max-width:1080px;margin:-16px auto 0;padding:0 12px 24px}
-.card{background:#fff;border-radius:16px;padding:16px;margin:14px 0;box-shadow:0 2px 10px rgba(0,0,0,.06)}
-.red{color:#e60012}.blue{color:#2563eb}.muted{color:#666;font-size:13px;line-height:1.7}
-.big{font-size:32px;font-weight:800;color:#e60012}
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.grid4{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px}
-.box{background:#f8f8ff;border-radius:12px;padding:12px}.box b{display:block;color:#666;font-size:13px}.box span{font-size:18px;font-weight:700;color:#e60012}
-h2{font-size:17px;margin:4px 0 10px} h3{margin:0 0 6px}
-.group-title{background:#eef2ff;border-radius:10px;padding:10px 12px;font-weight:700}
-.prod{border:1px solid #eee;border-radius:12px;padding:12px;margin:10px 0;cursor:pointer}
-.prod .row{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
-.prod .vals{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;margin-top:10px;font-size:14px}
-.prod .vals b{display:block;color:#888;font-size:12px}
-.detail{display:none;margin-top:12px;border-top:1px dashed #ddd;padding-top:12px}
-table{width:100%;border-collapse:collapse;font-size:13px}th,td{border-bottom:1px solid #eee;padding:6px;text-align:left}
-canvas{width:100%;height:120px;background:#fafbfc;border:1px solid #eee;border-radius:8px}
-.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;font-size:13px;text-align:center}
-.cal div{border:1px solid #eee;border-radius:8px;padding:6px}.cal .pos{color:#e60012;font-weight:700}
-input,select,button{padding:8px;margin:4px 4px 4px 0}button{cursor:pointer}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;margin:0;background:#f5f5f7;color:#222}
+header{padding:20px 16px 8px;max-width:720px;margin:0 auto}
+header h1{margin:0;font-size:20px}
+main{max-width:720px;margin:0 auto;padding:0 12px 24px}
+.total{font-size:30px;font-weight:800;color:#e60012}
+.sub{color:#666;font-size:14px;margin-top:4px}
+.card{background:#fff;border-radius:12px;padding:14px;margin:12px 0}
+.group{font-weight:700;margin:16px 0 6px}
+.prod{border-top:1px solid #eee;padding:10px 0;cursor:pointer}
+.prod:first-child{border-top:none}
+.row{display:flex;justify-content:space-between;gap:8px}
+.muted{color:#888;font-size:13px}
+.detail{display:none;margin-top:10px;border-top:1px dashed #ddd;padding-top:10px}
+table{width:100%;border-collapse:collapse;font-size:13px}th,td{border-bottom:1px solid #eee;padding:5px;text-align:left}
+canvas{width:100%;height:110px;background:#fafbfc;border:1px solid #eee;border-radius:8px}
+input,select,button{padding:7px;margin:4px 4px 4px 0}button{cursor:pointer}
 a{color:#2563eb}
-.early{background:#fff7e6;border:1px solid #ffd88a}
 </style>
 </head>
 <body>
 <header>
 <h1>个人台账</h1>
-<p>短期产品观察与研究 ｜ 每日净值、方法与市场笔记<br>持仓为用户自填记录，未与银行账户直接核对，以银行 App / 对账单为准</p>
+<div class="total" id="totalHolding">—</div>
+<div class="sub" id="todayLine">—</div>
+<div class="sub" id="earlyLine">提前披露：2026-10-26 匠心灵动 +17.17，总额 1,457,658.04（中国理财网暂未披露该日净值）</div>
 </header>
 <main>
+<div id="holdings">正在加载…</div>
 <div class="card">
-<div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap">
-<div><div class="muted">持有资产 · 持仓总金额（元）</div><div class="big" id="totalHolding">—</div><div class="muted">在途交易：买入 1 笔（目标页原样，未展开）</div></div>
-<div style="text-align:right"><div class="muted">今日收益总揽</div><div class="big" id="todayPnl">—</div><div class="muted" id="todayDate">2026-10-23 已全部更新</div></div>
-</div>
-<div class="grid4" style="margin-top:14px">
-<div class="box"><b>本月收益</b><span id="monthPnl">—</span></div>
-<div class="box"><b>本月年化</b><span id="monthAnn">—</span></div>
-<div class="box"><b>上月收益</b><span id="lastPnl">—</span></div>
-<div class="box"><b>上月年化</b><span id="lastAnn">—</span></div>
-</div>
-</div>
-
-<div class="card early">
-<h3>下日提前披露 · 2026-10-26</h3>
-<p class="muted">匠心灵动14天9期 N 份额（NYJXLD1409N）提前更新：当日 +17.17 元，持有变为 100,229.66 元，本月变为 +217.31 元，持仓盈亏变为 +229.66 元，持有年化 +2.93%。按此计算，持仓总额变为 1,457,658.04 元，本月变为 +2,319.97 元（年化约 2.03%）。<br>
-注意：截至 2026-10-26 23:04 查询，中国理财网该份额最新仍是 2026-10-23 的 1.01537，没有 26 号净值，所以这条提前披露目前不是中国理财网已披露的数据，隐含净值约 1.01554，仅供核对，正式净值以管理人 / 统一平台后续披露为准。</p>
-</div>
-
-<div class="card">
-<h2>收益日历 · 2026年10月</h2>
-<div class="cal" id="cal"></div>
-<p class="muted">2026-10-24 至 26 日在主日历上为空，26 日只有匠心灵动一只产品的提前更新，见上方提前披露卡片。</p>
-</div>
-
-<div class="card">
-<h2>收益明细 · 分组</h2>
-<div id="holdings">正在加载 holdings.json …</div>
-<p class="muted">点任意产品卡片，展开它的最新业绩、净值走势和逐日净值历史表。</p>
-</div>
-
-<div class="card">
-<h3>新增一日净值（只在本页临时计算，可导出）</h3>
+<details>
+<summary>新增一日净值 / 导出</summary>
 <label>产品 <select id="pSel"></select></label>
 <label>日期 <input id="dIn" type="date" value="2026-10-27"></label>
-<label>净值 <input id="nIn" type="number" step="0.000001" placeholder="例如 1.0190"></label>
-<button id="addBtn">加入本页并重算</button>
-<button id="expBtn">导出本页数据为 JSON</button>
+<label>净值 <input id="nIn" type="number" step="0.000001" placeholder="1.0190"></label>
+<button id="addBtn">加入并重算</button>
+<button id="expBtn">导出 JSON</button>
 <p id="addMsg" class="muted"></p>
+</details>
 </div>
-
-<div id="list">正在加载 nav-history.json …</div>
-<p class="muted">数据来源：中国理财网·理财行业统一信息披露平台，公开查询。最新净值日 2026-10-23（提前披露除外，见上方卡片）。每只产品取最近 30 条净值，因周末节假日无净值，30 条不是连续 30 个自然日。净值均为份额净值（元/CNY）。查净值的两个关键数据：登记编码打开详情页，子份额代码在详情页的净值下拉里选到对应份额，两个都要对上，不同份额净值可能不同。过往业绩不代表未来表现，不构成收益承诺。</p>
+<div id="list"></div>
+<p class="muted">净值来源：中国理财网公开查询，最新净值日 2026-10-23（提前披露除外）。持仓为自填记录，以银行 App / 对账单为准。过往业绩不代表未来表现。</p>
 </main>
 <script>
 let DATA=null, HOLD=null;
-const CAL={8:341.20,9:146.30,10:9.16,12:271.94,13:116.70,14:155.03,15:241.77,16:193.55,19:54.44,20:332.72,21:229.79,22:81.60,23:128.60};
 async function load(){
-  const r=await fetch('nav-history.json'); DATA=await r.json();
-  const hr=await fetch('holdings.json'); HOLD=await hr.json();
-  document.getElementById('totalHolding').textContent=HOLD.total_holding.toLocaleString();
-  document.getElementById('todayPnl').textContent='+'+HOLD.total_daily_pnl+'（+0.88）';
-  document.getElementById('monthPnl').textContent='+'+HOLD.monthly.pnl;
-  document.getElementById('monthAnn').textContent='+'+HOLD.monthly.annualized+'%';
-  document.getElementById('lastPnl').textContent='+'+HOLD.last_month.pnl;
-  document.getElementById('lastAnn').textContent='+'+HOLD.last_month.annualized+'%';
-  const cal=document.getElementById('cal');
-  for(let d=1;d<=31;d++){ const v=CAL[d]; const div=document.createElement('div'); div.innerHTML=d+'日'+(v!=null?'<br><span class="pos">+'+v+'</span>':'<br>—'); cal.appendChild(div); }
+  DATA=await (await fetch('nav-history.json')).json();
+  HOLD=await (await fetch('holdings.json')).json();
+  document.getElementById('totalHolding').textContent=HOLD.total_holding.toLocaleString()+' 元';
+  document.getElementById('todayLine').textContent='今日 +'+HOLD.total_daily_pnl+' · 本月 +'+HOLD.monthly.pnl+' · 2026-10-23';
   const sel=document.getElementById('pSel');
-  DATA.products.forEach((p,i)=>{const o=document.createElement('option');o.value=i;o.textContent=p.ledger_name+' '+p.share_code;sel.appendChild(o);});
+  DATA.products.forEach((p,i)=>{const o=document.createElement('option');o.value=i;o.textContent=p.ledger_name;sel.appendChild(o);});
   renderHoldings(); render();
 }
-function wan(n,prev){ if(prev==null) return '—'; return ((n-prev)*10000).toFixed(2); }
-function chg(n,prev){ if(prev==null) return '—'; return ((n-prev)/prev*100).toFixed(4)+'%'; }
+function wan(n,prev){ return prev==null?'—':((n-prev)*10000).toFixed(2); }
+function chg(n,prev){ return prev==null?'—':((n-prev)/prev*100).toFixed(2)+'%'; }
 function draw(canvas, hist){
-  const ctx=canvas.getContext('2d'); const W=canvas.width=canvas.offsetWidth*2, H=canvas.height=240;
+  const ctx=canvas.getContext('2d'); const W=canvas.width=canvas.offsetWidth*2, H=canvas.height=220;
   ctx.clearRect(0,0,W,H); const vals=hist.map(x=>x[1]).slice().reverse();
-  const mn=Math.min(...vals), mx=Math.max(...vals), pad=20;
+  const mn=Math.min(...vals), mx=Math.max(...vals), pad=16;
   ctx.strokeStyle='#5b5bd6'; ctx.lineWidth=3; ctx.beginPath();
   vals.forEach((v,i)=>{const x=pad+i*(W-2*pad)/Math.max(1,vals.length-1); const y=H-pad-(v-mn)/Math.max(0.000001,mx-mn)*(H-2*pad); i?ctx.lineTo(x,y):ctx.moveTo(x,y);});
   ctx.stroke();
@@ -114,40 +71,29 @@ function draw(canvas, hist){
 function renderHoldings(){
   const wrap=document.getElementById('holdings'); let html='';
   HOLD.groups.forEach(g=>{
-    html+='<div class="group-title">'+g.name+'（'+HOLD.products.filter(p=>p.group===g.name).length+'）　当日 +'+g.daily_pnl+'　万收 '+g.wan_shou+'</div>';
+    html+='<div class="group">'+g.name+' · 当日 +'+g.daily_pnl+'</div>';
     HOLD.products.filter(p=>p.group===g.name).forEach(p=>{
       const nav=DATA.products.find(n=>n.share_code===p.share_code);
-      html+='<div class="prod" data-share="'+p.share_code+'"><div class="row"><b>'+p.ledger_name+'（'+p.share_code+'）</b><span class="red">持有 '+p.holding_amount.toLocaleString()+'</span></div>'
-        +'<div class="vals"><div><b>当日盈亏</b>'+(p.daily_pnl>=0?'+':'')+p.daily_pnl+'</div><div><b>本月收益</b>+'+p.monthly_pnl+'</div><div><b>持仓盈亏</b>+'+p.holding_pnl+'</div><div><b>持有年化</b>+'+p.annualized+'%</div><div><b>最新净值</b>'+(nav?nav.history_desc[0][1]+'（'+nav.history_desc[0][0]+'）':'—')+'</div></div>'
-        +'<div class="muted">点此展开净值历史 · 最新业绩</div></div>';
+      html+='<div class="card prod" data-share="'+p.share_code+'"><div class="row"><b>'+p.ledger_name+'</b><span>'+p.holding_amount.toLocaleString()+'</span></div>'
+        +'<div class="row muted"><span>当日 '+(p.daily_pnl>=0?'+':'')+p.daily_pnl+' · 年化 '+p.annualized+'%</span><span>净值 '+(nav?nav.history_desc[0][1]:'—')+'</span></div></div>';
     });
   });
   wrap.innerHTML=html;
   wrap.querySelectorAll('.prod').forEach(el=>{
     el.onclick=()=>{
-      const share=el.dataset.share; const list=document.getElementById('list');
-      const target=[...list.querySelectorAll('.card')].find(c=>c.dataset.share===share);
-      if(target){ target.scrollIntoView({behavior:'smooth'}); target.querySelector('.detail').style.display='block'; }
+      const target=[...document.querySelectorAll('#list .card')].find(c=>c.dataset.share===el.dataset.share);
+      if(target){ target.scrollIntoView({behavior:'smooth'}); target.querySelector('.detail').style.display='block'; const p=DATA.products.find(n=>n.share_code===el.dataset.share); draw(target.querySelector('canvas'), p.history_desc); }
     };
   });
 }
 function render(){
   const wrap=document.getElementById('list'); wrap.innerHTML='';
   DATA.products.forEach(p=>{
-    const hist=p.history_desc; const latest=hist[0];
+    const hist=p.history_desc, latest=hist[0], link='https://xinxipilu.chinawealth.com.cn/queryMenu/prodType/prodTypeDetail?prodRegCode='+p.registration_code;
     const el=document.createElement('div'); el.className='card'; el.dataset.share=p.share_code;
-    const link='https://xinxipilu.chinawealth.com.cn/queryMenu/prodType/prodTypeDetail?prodRegCode='+p.registration_code;
-    const hold=HOLD.products.find(h=>h.share_code===p.share_code);
-    el.innerHTML='<h3>'+p.ledger_name+' · 最新业绩</h3><div class="muted">'+p.official_name+'<br>管理人：'+p.manager+'<br>登记编码：'+p.registration_code+'　子份额代码：'+p.share_code+'<br>平台净值表共 '+p.platform_total_rows+' 条　<a href="'+link+'" target="_blank" rel="noopener">去中国理财网详情页</a>'+(hold?'<br>我的持仓：'+hold.holding_amount.toLocaleString()+' 元':'' )+(p.note?'<br>注意：'+p.note:'')+(p.anomaly?'<br>注意：'+p.anomaly:'')+'</div>'
-      +'<div>最新净值 <span style="font-size:26px;color:#2563eb;font-weight:800">'+latest[1]+'</span>（'+latest[0]+'）</div>'
-      +'<div class="grid4" style="margin-top:10px">'
-      +'<div class="box"><b>近1个月年化</b><span>'+(p.past_performance.last_1m||'—')+'</span></div>'
-      +'<div class="box"><b>近3个月年化</b><span>'+(p.past_performance.last_3m||'—')+'</span></div>'
-      +'<div class="box"><b>成立以来年化</b><span>'+(p.past_performance.since_inception||'—')+'</span></div>'
-      +'</div><div class="detail"><canvas></canvas>'
-      +'<table><tr><th>日期</th><th>份额净值</th><th>日涨跌</th><th>当日万收（每万份）</th></tr>'
-      +hist.map((row,i)=>{const prev=hist[i+1]?hist[i+1][1]:null; return '<tr><td>'+row[0]+'</td><td>'+row[1]+'</td><td>'+chg(row[1],prev)+'</td><td>'+wan(row[1],prev)+'</td></tr>';}).join('')
-      +'</table></div><p class="muted">点标题可展开 / 收起净值走势与历史表（下方卡片默认收起，点产品明细卡片可跳转到这里并展开）。</p>';
+    el.innerHTML='<h3 style="margin:0">'+p.ledger_name+' · '+latest[1]+'</h3><div class="muted">'+p.manager+' · '+p.registration_code+' / '+p.share_code+' · <a href="'+link+'" target="_blank" rel="noopener">中国理财网详情</a></div>'
+      +'<div class="detail"><canvas></canvas><table><tr><th>日期</th><th>净值</th><th>日涨跌</th><th>万收</th></tr>'
+      +hist.map((row,i)=>{const prev=hist[i+1]?hist[i+1][1]:null; return '<tr><td>'+row[0]+'</td><td>'+row[1]+'</td><td>'+chg(row[1],prev)+'</td><td>'+wan(row[1],prev)+'</td></tr>';}).join('')+'</table></div>';
     el.querySelector('h3').onclick=()=>{const d=el.querySelector('.detail'); d.style.display=d.style.display==='block'?'none':'block'; if(d.style.display==='block') draw(el.querySelector('canvas'), hist);};
     wrap.appendChild(el);
   });
@@ -155,14 +101,11 @@ function render(){
 document.getElementById('addBtn').onclick=()=>{
   const i=+document.getElementById('pSel').value, d=document.getElementById('dIn').value, n=parseFloat(document.getElementById('nIn').value);
   if(!d||isNaN(n)){document.getElementById('addMsg').textContent='请填写日期和净值';return;}
-  const p=DATA.products[i];
-  p.history_desc=p.history_desc.filter(x=>x[0]!==d); p.history_desc.unshift([d,n]); p.history_desc.sort((a,b)=>b[0].localeCompare(a[0]));
-  document.getElementById('addMsg').textContent='已在本页加入 '+p.ledger_name+' '+d+' '+n+'，当日万收和走势已重算，刷新后恢复为仓库数据，如需保存请点导出。';
-  render();
+  const p=DATA.products[i]; p.history_desc=p.history_desc.filter(x=>x[0]!==d); p.history_desc.unshift([d,n]); p.history_desc.sort((a,b)=>b[0].localeCompare(a[0]));
+  document.getElementById('addMsg').textContent='已加入 '+p.ledger_name+' '+d+' '+n+'，刷新后恢复仓库数据。'; render();
 };
 document.getElementById('expBtn').onclick=()=>{
-  const blob=new Blob([JSON.stringify(DATA,null,2)],{type:'application/json'});
-  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='nav-history.json'; a.click();
+  const blob=new Blob([JSON.stringify(DATA,null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='nav-history.json'; a.click();
 };
 load();
 </script>
