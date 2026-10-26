@@ -77,6 +77,13 @@ a{color:#2563eb}
 </div>
 </div>
 <div class="card" style="margin-top:16px">
+<div class="row"><h2>交易中心</h2><span class="muted">按时间查看买入、卖出与筛选 · 仅目前8只持仓，已清仓不录</span></div>
+<div id="txSummary" class="muted">正在加载交易记录…</div>
+<div style="margin-top:10px"><label>月份 <select id="txMonth"><option>全部月份</option><option>2026-10</option><option>2026-09</option></select></label> <label>机构 <select id="txInst"><option>全部机构</option><option>网商银行</option><option>微众稳健</option></select></label></div>
+<div id="txList"></div>
+<p class="muted">待确认：诚享7天29A，微众稳健，确认日 --，份额 --，50,000.00。老台账汇总的36次买入、18次卖出、12个已清仓包含已清仓产品，按你的要求不录入本页，本页只算目前8只：买入12次、卖出2次、待确认1笔。</p>
+</div>
+<div class="card" style="margin-top:16px">
 <details>
 <summary>新增一日净值 / 导出 / 净值历史与近30自然日指标（全部由净值算出）</summary>
 <label>产品 <select id="pSel"></select></label>
@@ -95,9 +102,11 @@ let DATA=null, HOLD=null, DIM='distributor', SEL='全部机构', MULTI=null, VIE
 const fmt=(n,d=2)=> (n>=0?'+':'')+n.toFixed(d);
 const parseD=s=>new Date(s+'T00:00:00');
 const daysBetween=(a,b)=>Math.round((parseD(b)-parseD(a))/86400000);
+let TX=null;
 async function load(){
   DATA=await (await fetch('nav-history.json')).json();
   HOLD=await (await fetch('holdings.json')).json();
+  try{ TX=await (await fetch('transactions.json')).json(); renderTx(); }catch(e){ document.getElementById('txSummary').textContent='交易记录未加载'; }
   const sel=document.getElementById('pSel');
   DATA.products.forEach((p,i)=>{const o=document.createElement('option');o.value=i;o.textContent=p.ledger_name;sel.appendChild(o);});
   buildInstControls(); applyView(); renderCalendar(); renderHoldings(); render();
@@ -162,6 +171,22 @@ function applyView(){
 }
 document.getElementById('tabToday').onclick=()=>{VIEW='today';applyView();renderHoldings();};
 document.getElementById('tabNext').onclick=()=>{VIEW='next';applyView();renderHoldings();};
+function renderTx(){
+  if(!TX) return;
+  document.getElementById('txSummary').textContent='目前8只：买入12次、卖出2次、待确认1笔（诚享7天29A 50,000.00）。';
+  const draw=()=>{
+    const m=document.getElementById('txMonth').value, inst=document.getElementById('txInst').value;
+    let list=TX.transactions.filter(t=>(m==='全部月份'||t.date.startsWith(m))&&(inst==='全部机构'||t.distributor===inst));
+    let html='<div class="muted" style="margin-top:10px">待确认：诚享7天29A · 微众稳健 · 确认日 -- · 份额 -- · 50,000.00</div>';
+    let lastMonth='';
+    list.forEach(t=>{
+      const mm=t.date.slice(0,7); if(mm!==lastMonth){ lastMonth=mm; html+='<div class="groupHead"><span>'+mm+'</span></div>'; }
+      html+='<div class="row" style="border-bottom:1px solid #eee;padding:8px 0"><span><b style="color:'+(t.type==='卖出'?'#0a7d4a':'#e60012')+'">'+t.type+'</b> '+t.product+'<br><span class="muted">'+t.distributor+' · 确认日 '+t.date+' · 份额 '+t.shares.toLocaleString()+'</span></span><b>'+t.amount.toLocaleString(undefined,{minimumFractionDigits:2})+'</b></div>';
+    });
+    document.getElementById('txList').innerHTML=html;
+  };
+  document.getElementById('txMonth').onchange=draw; document.getElementById('txInst').onchange=draw; draw();
+}
 function renderCalendar(){
   const wrap=document.getElementById('calendar'); let html=['日','一','二','三','四','五','六'].map(d=>'<div class="muted"><b>'+d+'</b></div>').join('');
   for(let i=0;i<4;i++) html+='<div></div>';

@@ -1,0 +1,132 @@
+{
+  "note": "仅目前8只持仓的交易记录，已清仓产品已按用户要求排除，不录入。数据来自2026-10-26 oldox交易中心只读核对，金额、份额、日期按页面显示。",
+  "pending": [
+    {
+      "type": "待确认",
+      "product": "诚享7天29A",
+      "distributor": "微众稳健",
+      "date": "--",
+      "shares": null,
+      "amount": 50000.0
+    }
+  ],
+  "transactions": [
+    {
+      "type": "卖出",
+      "product": "诚享7天29A",
+      "distributor": "微众稳健",
+      "date": "2026-10-23",
+      "shares": 40000.0,
+      "amount": 40606.72
+    },
+    {
+      "type": "卖出",
+      "product": "诚享7天29A",
+      "distributor": "微众稳健",
+      "date": "2026-10-22",
+      "shares": 4664.76,
+      "amount": 4735.13
+    },
+    {
+      "type": "买入",
+      "product": "诚享7天29A",
+      "distributor": "微众稳健",
+      "date": "2026-10-14",
+      "shares": 98597.06,
+      "amount": 100000.0
+    },
+    {
+      "type": "买入",
+      "product": "诚享7天29A",
+      "distributor": "微众稳健",
+      "date": "2026-10-13",
+      "shares": 197225.43,
+      "amount": 200000.0
+    },
+    {
+      "type": "买入",
+      "product": "宁欣28天83E",
+      "distributor": "微众稳健",
+      "date": "2026-10-13",
+      "shares": 97638.51,
+      "amount": 100000.0
+    },
+    {
+      "type": "买入",
+      "product": "宁银晶耀90天1A",
+      "distributor": "网商银行",
+      "date": "2026-10-12",
+      "shares": 189987.83,
+      "amount": 200000.0
+    },
+    {
+      "type": "买入",
+      "product": "匠心灵动14天9期G",
+      "distributor": "微众稳健",
+      "date": "2026-09-29",
+      "shares": 98444.19,
+      "amount": 100000.0
+    },
+    {
+      "type": "买入",
+      "product": "匠心灵动14天9期",
+      "distributor": "网商银行",
+      "date": "2026-09-29",
+      "shares": 98695.54,
+      "amount": 100000.0
+    },
+    {
+      "type": "买入",
+      "product": "财富牛S款91天1A",
+      "distributor": "网商银行",
+      "date": "2026-09-22",
+      "shares": 98387.14,
+      "amount": 100000.0
+    },
+    {
+      "type": "买入",
+      "product": "诚享7天29A",
+      "distributor": "微众稳健",
+      "date": "2026-09-14",
+      "shares": 98842.26,
+      "amount": 100000.0
+    },
+    {
+      "type": "买入",
+      "product": "聚宝盈150天1T",
+      "distributor": "网商银行",
+      "date": "2026-09-08",
+      "shares": 190400.03,
+      "amount": 200000.0
+    },
+    {
+      "type": "买入",
+      "product": "聚宝盈150天1T",
+      "distributor": "网商银行",
+      "date": "2026-09-08",
+      "shares": 95200.02,
+      "amount": 100000.0
+    },
+    {
+      "type": "买入",
+      "product": "聚宝盈270天1Q",
+      "distributor": "微众稳健",
+      "date": "2026-09-08",
+      "shares": 98589.19,
+      "amount": 100000.0
+    },
+    {
+      "type": "买入",
+      "product": "聚宝盈150天1T",
+      "distributor": "网商银行",
+      "date": "2026-09-03",
+      "shares": 95248.07,
+      "amount": 100000.0
+    }
+  ],
+  "summary_current8": {
+    "buys": 12,
+    "sells": 2,
+    "pending": 1
+  }
+}
