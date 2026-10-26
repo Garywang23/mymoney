@@ -55,11 +55,20 @@ function viewAsOf(share){
 function lotShares(ledgerName, dateStr){
   if(!TX) return 0;
   let sh=0;
-  TX.transactions.forEach(t=>{
-    if(t.product!==ledgerName) return;
+  const mine=TX.transactions.filter(t=>t.product===ledgerName);
+  mine.forEach(t=>{
     const nd=t.nav_date||t.date;
     if(nd < dateStr) sh += (t.type==='卖出' ? -t.shares : t.shares);
   });
+  // 份额锚点：交易单合计与持仓不一致时，以持仓为准。诚享交易单合计 349,999.99，持仓 350,000.00，差 0.01（某笔份额四舍五入），
+  // 日期晚于最后一笔交易净值日时直接返回持仓份额，不再用合计的 349,999.99。
+  if(HOLD && mine.length){
+    const hold=HOLD.products.find(x=>x.ledger_name===ledgerName);
+    if(hold){
+      const lastNd=mine.map(t=>t.nav_date||t.date).sort().pop();
+      if(dateStr > lastNd) return hold.shares;
+    }
+  }
   return sh;
 }
 function lotCalendar(){
@@ -126,8 +135,9 @@ function renderCalendar(){
       if(!rows){ box.innerHTML=''; return; }
       const oldv=OLD_CAL[ds];
       let totAmt=rows.reduce((a,r)=>a+r.shares*r.nav,0); let h='<h4 style="margin:12px 0 6px">'+ds+' · 当前8只合计 '+fmt(cal[ds])+' · 当日持有金额合计 '+totAmt.toLocaleString(undefined,{maximumFractionDigits:2})+(oldv!=null?' · 目标页日历当日合计 '+fmt(oldv)+'，差额 '+fmt(oldv-cal[ds])+'（已清仓当日收益 + 诚享四舍五入误差，10-23当日差额 25.55 全是诚享）':'')+'</h4><table><tr><th>产品</th><th>当日份额</th><th>上一净值日</th><th>上一净值</th><th>当日净值</th><th>当日金额</th><th>当日收益</th></tr>';
-      rows.forEach(r=>{ h+='<tr><td>'+r.name+'</td><td>'+r.shares.toLocaleString()+'</td><td>'+r.prevDate+'</td><td>'+r.prev+'</td><td>'+r.nav+'</td><td>'+(r.shares*r.nav).toLocaleString(undefined,{maximumFractionDigits:2})+'</td><td>'+fmt(r.gain)+'</td></tr>'; });
+      rows.forEach(r=>{ const gainTxt=(r.name.indexOf('诚享')>=0 && r.prev===r.nav) ? '精度不足' : fmt(r.gain); h+='<tr><td>'+r.name+'</td><td>'+r.shares.toLocaleString()+'</td><td>'+r.prevDate+'</td><td>'+r.prev+'</td><td>'+r.nav+'</td><td>'+(r.shares*r.nav).toLocaleString(undefined,{maximumFractionDigits:2})+'</td><td>'+gainTxt+'</td></tr>'; });
       h+='</table><p class="muted">公式：当日收益 = 当日份额 ×（当日净值 - 上一净值）。当日份额按交易净值日算：净值日在当日之前的买入计入，卖出在净值日之后的才扣减。</p>';
+      if(rows.some(r=>r.name.indexOf('诚享')>=0 && r.prev===r.nav)){ h+='<p class="muted">诚享注意：上一净值与当日净值在中国理财网都显示 1.0152，但实际不同——目标页 23 日当日为 +25.55，4 位净值算出的 +0.00 是错的，不是 0。23 日精确净值约 355,334.35 ÷ 350,000 = 1.015241，22 日精确净值约 1.015241 − 25.55 ÷ 350,000 = 1.015168，两者都四舍五入到 1.0152，涨幅 0.000073 藏在第 5 位。正在查北银理财精确净值，查到后再替换 4 位数。</p>'; }
       box.innerHTML=h;
     };
   });
