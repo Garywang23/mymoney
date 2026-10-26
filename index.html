@@ -23,7 +23,9 @@ a{color:#2563eb}
 <h1>我的理财净值历史</h1>
 <p class="note">数据来源：中国理财网·理财行业统一信息披露平台，公开查询。最新净值日 2026-10-23。每只产品取最近 30 条净值，因周末节假日无净值，30 条不是连续 30 个自然日。净值均为份额净值（元/CNY）。过往业绩不代表未来表现，不构成收益承诺。<br>
 查净值的两个关键数据：登记编码打开详情页，子份额代码在详情页的净值下拉里选到对应份额，两个都要对上，不同份额净值可能不同。<br>
-本页的净值数据是公开数据，放在仓库里。持仓金额不在仓库里，你在本页输入的持仓只保存在你自己浏览器的本地存储，不会上传。</p>
+本页的净值数据是公开数据。下方持仓为 2026-10-23 快照，已按用户要求同步到仓库，持仓为用户自填记录，未与银行账户直接核对，以银行 App / 对账单为准。</p>
+
+<div class="card" id="holdings">正在加载 holdings.json …</div>
 
 <div class="card">
 <h3>新增一日净值（只在本页临时计算，可导出）</h3>
@@ -41,6 +43,15 @@ a{color:#2563eb}
 let DATA=null;
 async function load(){
   const r=await fetch('nav-history.json'); DATA=await r.json();
+  try{
+    const hr=await fetch('holdings.json'); const H=await hr.json();
+    document.getElementById('holdings').innerHTML='<h3>我的持仓（'+H.snapshot_date+' 快照）</h3>'
+      +'<div>持仓总额 <span class="latest">'+H.total_holding.toLocaleString()+'</span> 元　当日收益 +'+H.total_daily_pnl+' 元　本月收益 +'+H.monthly.pnl+' 元（年化 '+H.monthly.annualized+'%）　上月收益 +'+H.last_month.pnl+' 元（年化 '+H.last_month.annualized+'%）</div>'
+      +'<div class="meta">'+H.groups.map(g=>g.name+'：当日 +'+g.daily_pnl+'，万收 '+g.wan_shou).join('；')+'<br>'+H.note+'</div>'
+      +'<table><tr><th>分组</th><th>产品</th><th>持仓金额</th><th>当日收益</th><th>本月收益</th><th>持仓盈亏</th><th>持仓年化</th></tr>'
+      +H.products.map(p=>'<tr><td>'+p.group+'</td><td>'+p.ledger_name+' '+p.share_code+'</td><td>'+p.holding_amount.toLocaleString()+'</td><td>'+p.daily_pnl+'</td><td>'+p.monthly_pnl+'</td><td>'+p.holding_pnl+'</td><td>'+p.annualized+'%</td></tr>').join('')
+      +'</table>';
+  }catch(e){ document.getElementById('holdings').textContent='持仓数据未加载'; }
   const sel=document.getElementById('pSel');
   DATA.products.forEach((p,i)=>{const o=document.createElement('option');o.value=i;o.textContent=p.ledger_name+' '+p.share_code;sel.appendChild(o);});
   render();
