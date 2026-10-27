@@ -57,3 +57,18 @@ a{color:#2563eb}
 .cal .cell a{text-decoration:none;color:inherit;display:block}
 .cal .cell a:hover{text-decoration:underline}
 .cal .cell.has a{color:#222}
+.detail,#dayDetail{overflow-x:auto}
+@media(max-width:760px){
+.wrap{padding:12px 10px 20px}
+.card{padding:14px 12px}
+.pagetitle{font-size:20px}
+.cal{gap:4px;font-size:12px}
+.cal .cell{padding:4px 2px;min-height:48px}
+.cal .cell .v{font-size:11px}
+.prod{padding:10px}
+.prod .cols,.prod .cols.cols6{grid-template-columns:repeat(2,1fr)}
+table{font-size:12px}
+th,td{padding:4px 3px}
+.row{flex-wrap:wrap}
+.nav a{padding:7px 12px;font-size:13px}
+}
