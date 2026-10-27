@@ -227,7 +227,7 @@ function renderTodaySummary(){
     const [yy,mm]=monthStr.split('-').map(Number);
     const D=new Date(yy, mm, 0).getDate();
     const startStr=monthStr+'-01';
-    const beforeStr=fmtDateLocal(new Date(yy, mm-1, 1).getTime()-86400000);
+    const beforeStr=fmtDateLocal(new Date(new Date(yy, mm-1, 1).getTime()-86400000));
     let V0=0;
     HOLD.products.forEach(p=>{
       const h=histAsc(p.share_code).filter(x=>x[0]<=beforeStr);
