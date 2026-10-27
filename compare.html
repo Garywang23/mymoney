@@ -12,7 +12,23 @@
 <nav class="nav"><a href="index.html" class="">首页</a><a href="compare.html" class="on">产品对比</a><a href="transactions.html" class="">交易记录</a></nav>
 
 <div class="card">
-<div class="row"><h2>产品对比 · 8只</h2></div>
+<div class="row"><h2>产品对比 · <span id="compareCount">8只</span></h2><button class="pill" id="addToggle">增加产品</button></div>
+<div id="addForm" style="display:none;border-top:1px solid #eee;padding-top:10px;margin-top:10px">
+<label>产品名 <input id="addName" placeholder="例如 新产品90天1A"></label>
+<label>子份额代码 <input id="addCode" placeholder="例如 XXX000001A"></label>
+<label>代销 <input id="addDist" list="distList" placeholder="网商银行 / 微众稳健"><datalist id="distList"><option value="网商银行"><option value="微众稳健"></datalist></label>
+<label>管理人简称 <input id="addMgrShort" placeholder="例如 南银"></label>
+<label>管理人全称 <input id="addMgr" placeholder="可选，默认用简称"></label>
+<label>登记编码 <input id="addReg" placeholder="可选"></label>
+<label>买入日 <input id="addBuyDate" type="date"></label>
+<label>买入净值 <input id="addBuyNav" type="number" step="0.000001" placeholder="1.000000"></label>
+<label>持有份额 <input id="addShares" type="number" step="0.01" placeholder="100000"></label>
+<button id="addProdBtn">加入持仓</button>
+<button id="expHoldBtn">导出持仓 JSON</button>
+<button id="expTxBtn">导出交易 JSON</button>
+<button id="clearLocalBtn">清除本机保存</button>
+<p id="addProdMsg" class="muted"></p>
+</div>
 <div id="compareTable" style="overflow-x:auto">正在加载…</div>
 </div>
 
@@ -20,6 +36,36 @@
 <script src="common.js"></script>
 <script>
 loadData().then(()=>{renderCompare();});
+document.getElementById('addToggle').onclick=()=>{
+  const f=document.getElementById('addForm');
+  f.style.display=f.style.display==='block'?'none':'block';
+};
+document.getElementById('addProdBtn').onclick=()=>{
+  const msg=document.getElementById('addProdMsg');
+  const ledger_name=document.getElementById('addName').value.trim();
+  const share_code=document.getElementById('addCode').value.trim();
+  const distributor=document.getElementById('addDist').value.trim();
+  const manager_short=document.getElementById('addMgrShort').value.trim();
+  const manager=document.getElementById('addMgr').value.trim();
+  const registration_code=document.getElementById('addReg').value.trim();
+  const purchase_date=document.getElementById('addBuyDate').value;
+  const purchase_nav=parseFloat(document.getElementById('addBuyNav').value);
+  const shares=parseFloat(document.getElementById('addShares').value);
+  if(!ledger_name||!share_code||!distributor||!purchase_date||!(purchase_nav>0)||!(shares>0)){ msg.textContent='请填写产品名、子份额代码、代销、买入日、买入净值、持有份额'; return; }
+  const res=addProductToHoldings({ledger_name, share_code, distributor, manager_short, manager, registration_code, purchase_date, purchase_nav, shares});
+  if(!res.ok){ msg.textContent=res.msg; return; }
+  msg.textContent='已加入 '+ledger_name+'，已本机保存，首页总额和交易记录页同浏览器联动。';
+  ['addName','addCode','addMgrShort','addMgr','addReg','addBuyDate','addBuyNav','addShares'].forEach(id=>{document.getElementById(id).value='';});
+  renderCompare();
+};
+document.getElementById('expHoldBtn').onclick=()=>{
+  const blob=new Blob([JSON.stringify(HOLD,null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='holdings.json'; a.click();
+};
+document.getElementById('expTxBtn').onclick=()=>{
+  if(!TX){ document.getElementById('addProdMsg').textContent='暂无交易数据'; return; }
+  const blob=new Blob([JSON.stringify(TX,null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='transactions.json'; a.click();
+};
+document.getElementById('clearLocalBtn').onclick=()=>{ clearLocal(); location.reload(); };
 </script>
 </body>
 </html>

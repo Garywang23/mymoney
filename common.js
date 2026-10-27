@@ -6,19 +6,23 @@ const daysBetween=(a,b)=>Math.round((parseD(b)-parseD(a))/86400000);
 let TX=null;
 let LOCAL=null;
 function loadLocal(){
-  try{ LOCAL=JSON.parse(localStorage.getItem('mymoney_local_v1')||'null')||{added:[],pendingAdded:[],pendingRemoved:[],holdShares:{},navAdded:[]}; }
-  catch(e){ LOCAL={added:[],pendingAdded:[],pendingRemoved:[],holdShares:{},navAdded:[]}; }
+  try{ LOCAL=JSON.parse(localStorage.getItem('mymoney_local_v1')||'null')||{}; }
+  catch(e){ LOCAL={}; }
+  LOCAL.added=LOCAL.added||[]; LOCAL.pendingAdded=LOCAL.pendingAdded||[]; LOCAL.pendingRemoved=LOCAL.pendingRemoved||[]; LOCAL.holdShares=LOCAL.holdShares||{}; LOCAL.navAdded=LOCAL.navAdded||[]; LOCAL.holdAdded=LOCAL.holdAdded||[]; LOCAL.holdDeleted=LOCAL.holdDeleted||[]; LOCAL.dataAdded=LOCAL.dataAdded||[];
   return LOCAL;
 }
 function saveLocal(){
   try{ localStorage.setItem('mymoney_local_v1', JSON.stringify(LOCAL)); }catch(e){}
 }
-function clearLocal(){ try{ localStorage.removeItem('mymoney_local_v1'); }catch(e){} LOCAL={added:[],pendingAdded:[],pendingRemoved:[],holdShares:{},navAdded:[]}; }
+function clearLocal(){ try{ localStorage.removeItem('mymoney_local_v1'); }catch(e){} LOCAL={added:[],pendingAdded:[],pendingRemoved:[],holdShares:{},navAdded:[],holdAdded:[],holdDeleted:[],dataAdded:[]}; }
 async function loadData(){
   DATA=await (await fetch('nav-history.json')).json();
   HOLD=await (await fetch('holdings.json')).json();
   try{ TX=await (await fetch('transactions.json')).json(); }catch(e){ TX=null; }
   loadLocal();
+  if(LOCAL.holdDeleted && LOCAL.holdDeleted.length) HOLD.products=HOLD.products.filter(p=>!LOCAL.holdDeleted.includes(p.share_code));
+  (LOCAL.holdAdded||[]).forEach(h=>{ if(!HOLD.products.some(p=>p.share_code===h.share_code)) HOLD.products.push(h); });
+  (LOCAL.dataAdded||[]).forEach(d=>{ if(!DATA.products.some(p=>p.share_code===d.share_code)) DATA.products.push(d); });
   if(TX){
     if(!TX.pending) TX.pending=[];
     (LOCAL.added||[]).forEach(t=>{ if(!TX.transactions.some(x=>x.product===t.product&&x.date===t.date&&x.nav_date===t.nav_date&&x.amount===t.amount&&x.shares===t.shares&&x.type===t.type)) TX.transactions.push(t); });
@@ -32,9 +36,37 @@ async function loadData(){
     if(existing) existing[1]=n.nav; else { prod.history_desc.push([n.date,n.nav]); prod.history_desc.sort((a,b)=>b[0].localeCompare(a[0])); }
   });
 }
+function deleteProduct(share){
+  const prod=HOLD.products.find(p=>p.share_code===share); if(!prod) return;
+  if(!confirm('确定删除 '+prod.ledger_name+' 吗？')) return;
+  HOLD.products=HOLD.products.filter(p=>p.share_code!==share);
+  const inLocalAdded=LOCAL.holdAdded.some(h=>h.share_code===share);
+  LOCAL.holdAdded=LOCAL.holdAdded.filter(h=>h.share_code!==share);
+  if(LOCAL.holdShares) delete LOCAL.holdShares[share];
+  if(!inLocalAdded && !LOCAL.holdDeleted.includes(share)) LOCAL.holdDeleted.push(share);
+  saveLocal();
+  if(document.getElementById('compareTable')) renderCompare();
+}
+function addProductToHoldings(obj){
+  if(HOLD.products.some(p=>p.share_code===obj.share_code)) return {ok:false, msg:'该子份额代码已在持仓中'};
+  const hold={group:obj.distributor, ledger_name:obj.ledger_name, share_code:obj.share_code, shares:obj.shares, distributor:obj.distributor, manager_short:obj.manager_short||'', manager:obj.manager||obj.manager_short||'', purchase_date:obj.purchase_date, purchase_nav:obj.purchase_nav};
+  HOLD.products.push(hold); LOCAL.holdAdded.push(hold);
+  LOCAL.holdDeleted=LOCAL.holdDeleted.filter(s=>s!==obj.share_code);
+  let dataExists=DATA.products.some(p=>p.share_code===obj.share_code);
+  if(!dataExists){
+    const data={ledger_name:obj.ledger_name, share_code:obj.share_code, manager:obj.manager||obj.manager_short||'', registration_code:obj.registration_code||'', history_desc:[[obj.purchase_date, obj.purchase_nav]], official_source:''};
+    DATA.products.push(data); LOCAL.dataAdded.push(data);
+  }
+  if(TX){
+    const rec={type:'买入', product:obj.ledger_name, distributor:obj.distributor, date:nextWorkingDay(obj.purchase_date), shares:obj.shares, amount:Math.round(obj.shares*obj.purchase_nav*100)/100, nav_date:obj.purchase_date};
+    TX.transactions.push(rec); LOCAL.added.push(rec);
+  }
+  saveLocal();
+  return {ok:true};
+}
 function setTxt(id, txt){const e=document.getElementById(id); if(e) e.textContent=txt;}
 function navProd(share){ return DATA.products.find(x=>x.share_code===share); }
-function histAsc(share){ return navProd(share).history_desc.slice().sort((a,b)=>a[0].localeCompare(b[0])); }
+function histAsc(share){ const p=navProd(share); return p?p.history_desc.slice().sort((a,b)=>a[0].localeCompare(b[0])):[]; }
 function navAsOf(share, dateStr){
   const h=histAsc(share).filter(x=>x[0]<=dateStr);
   return h.length?h[h.length-1]:null;
@@ -44,7 +76,7 @@ function prevNav(share, dateStr){
   return h.length>1?h[h.length-2]:null;
 }
 function calc(share, asOf){
-  const hold=HOLD.products.find(p=>p.share_code===share);
+  const hold=HOLD.products.find(p=>p.share_code===share); if(!hold) return null;
   const cur=navAsOf(share, asOf); if(!cur) return null;
   const prev=prevNav(share, asOf);
   const amount=hold.shares*cur[1];
@@ -73,7 +105,7 @@ function calc(share, asOf){
   return {hold, cur, prev, amount, daily, monthly, holdingPnl, holdingAnn, monthStartNav, monthStartDate, principal, daysHeld};
 }
 function viewAsOf(share){
-  const h=histAsc(share); return h[h.length-1][0];
+  const h=histAsc(share); return h.length?h[h.length-1][0]:null;
 }
 function lotShares(ledgerName, dateStr){
   if(!TX) return 0;
@@ -167,7 +199,7 @@ function renderHomeTotal(){
   const wrap=document.getElementById('homeTotal'); if(!wrap) return;
   let total=0;
   HOLD.products.forEach(p=>{ const c=calc(p.share_code, viewAsOf(p.share_code)); total+=c.amount; });
-  wrap.innerHTML='<div class="muted">持仓总金额（元）</div><div style="font-size:30px;font-weight:800;color:#e60012">'+total.toLocaleString(undefined,{maximumFractionDigits:2})+'</div><p><a href="transactions.html">交易记录 →</a> · <a href="compare.html">产品对比 →</a></p>';
+  wrap.innerHTML='<div class="muted">持仓总金额（元）</div><div style="font-size:30px;font-weight:800;color:#e60012">'+total.toLocaleString(undefined,{maximumFractionDigits:2})+'</div>';
 }
 function renderHomeDetail(){
   const wrap=document.getElementById('homeDetail'); if(!wrap) return;
@@ -242,9 +274,11 @@ function gainCls(v){ return v==null?'':(v>0?' class="gain-pos"':(v<0?' class="ga
 function annCls(v){ return (v!=null&&v>2)?' class="ann-high"':''; }
 function renderCompare(){
   const wrap=document.getElementById('compareTable'); if(!DATA||!HOLD) return;
+  if(CMP_SORT.key==='rise7'||CMP_SORT.key==='rise14') CMP_SORT={key:'rise30',dir:-1};
+  const countEl=document.getElementById('compareCount'); if(countEl) countEl.textContent=HOLD.products.length+'只';
   const rows=[];
   HOLD.products.forEach(p=>{
-    const h=histAsc(p.share_code);
+    const h=histAsc(p.share_code); if(!h.length) return;
     const latest=h[h.length-1], prev=h.length>1?h[h.length-2]:null;
     const m=metricsFor(p.share_code).find(r=>r.date===latest[0]) || metricsFor(p.share_code)[0];
     const wan=prev?(latest[1]/prev[1]-1)*10000:0;
@@ -256,9 +290,9 @@ function renderCompare(){
       const days=daysBetween(base[0], latest[0]);
       return {pct:(latest[1]/base[1]-1)*100, ann:days>0?(latest[1]/base[1]-1)*365/days*100:null};
     };
-    const r7=rise(7), r14=rise(14);
-    const c=calc(p.share_code, latest[0]);
-    rows.push({name:p.ledger_name, code:p.share_code, date:latest[0], nav:latest[1], wan, avg7:m?m.avg7:0, avg14:m?m.avg14:0, ann7:m?m.ann7:null, ann14:m?m.ann14:null, ann30:m?m.ann30:null, rise7:r7?r7.pct:null, rise14:r14?r14.pct:null, daily:c.daily, shares:p.shares, amount:c.amount});
+    const r30=rise(30);
+    const c=calc(p.share_code, latest[0]); if(!c) return;
+    rows.push({name:p.ledger_name, code:p.share_code, date:latest[0], nav:latest[1], wan, avg7:m?m.avg7:0, avg14:m?m.avg14:0, ann7:m?m.ann7:null, ann14:m?m.ann14:null, ann30:m?m.ann30:null, rise30:r30?r30.pct:null, daily:c.daily, shares:p.shares, amount:c.amount});
   });
   const k=CMP_SORT.key, d=CMP_SORT.dir;
   rows.sort((a,b)=>{
@@ -269,10 +303,10 @@ function renderCompare(){
     if(typeof va==='string') return d*va.localeCompare(vb);
     return d*(va-vb);
   });
-  const cols=[['name','产品'],['date','净值日期'],['wan','当日万收'],['avg7','7日日均'],['avg14','14日日均'],['ann7','7日年化'],['ann14','14日年化'],['ann30','1月年化'],['rise7','7日涨幅'],['rise14','14日涨幅'],['daily','当日收益'],['nav','最新净值'],['shares','持有份额'],['amount','持有金额']];
-  let html='<table><tr>'+cols.map(([key,label])=>'<th onclick="sortCompare(\''+key+'\')">'+label+(CMP_SORT.key===key?(CMP_SORT.dir===1?' ▲':' ▼'):'')+'</th>').join('')+'</tr>';
+  const cols=[['name','产品'],['date','净值日期'],['wan','当日万收'],['avg7','7日日均'],['avg14','14日日均'],['ann7','7日年化'],['ann14','14日年化'],['ann30','1月年化'],['rise30','1月涨幅'],['daily','当日收益'],['nav','最新净值'],['shares','持有份额'],['amount','持有金额'],['del','操作']];
+  let html='<table><tr>'+cols.map(([key,label])=>key==='del'?'<th>操作</th>':'<th onclick="sortCompare(\''+key+'\')">'+label+(CMP_SORT.key===key?(CMP_SORT.dir===1?' ▲':' ▼'):'')+'</th>').join('')+'</tr>';
   rows.forEach((r,idx)=>{
-    html+='<tr'+(idx===0?' style="background:#fff7e6"':'')+'><td><a href="detail.html?share='+encodeURIComponent(r.code)+'">'+r.name+'</a><br><span class="muted">'+r.code+'</span></td><td>'+r.date.slice(5)+'</td><td'+gainCls(r.wan)+'>'+r.wan.toFixed(2)+'</td><td'+gainCls(r.avg7)+'>'+r.avg7.toFixed(2)+'</td><td'+gainCls(r.avg14)+'>'+r.avg14.toFixed(2)+'</td><td'+annCls(r.ann7)+'>'+pctTxt(r.ann7)+'</td><td'+annCls(r.ann14)+'>'+pctTxt(r.ann14)+'</td><td'+annCls(r.ann30)+'>'+pctTxt(r.ann30)+'</td><td'+gainCls(r.rise7)+'>'+(r.rise7==null?'—':r.rise7.toFixed(2)+'%')+'</td><td'+gainCls(r.rise14)+'>'+(r.rise14==null?'—':r.rise14.toFixed(2)+'%')+'</td><td'+gainCls(r.daily)+'>'+fmt(r.daily)+'</td><td>'+r.nav+'</td><td>'+r.shares.toLocaleString()+'</td><td>'+r.amount.toLocaleString(undefined,{maximumFractionDigits:2})+'</td></tr>';
+    html+='<tr'+(idx===0?' style="background:#fff7e6"':'')+'><td><a href="detail.html?share='+encodeURIComponent(r.code)+'">'+r.name+'</a><br><span class="muted">'+r.code+'</span></td><td>'+r.date.slice(5)+'</td><td'+gainCls(r.wan)+'>'+r.wan.toFixed(2)+'</td><td'+gainCls(r.avg7)+'>'+r.avg7.toFixed(2)+'</td><td'+gainCls(r.avg14)+'>'+r.avg14.toFixed(2)+'</td><td'+annCls(r.ann7)+'>'+pctTxt(r.ann7)+'</td><td'+annCls(r.ann14)+'>'+pctTxt(r.ann14)+'</td><td'+annCls(r.ann30)+'>'+pctTxt(r.ann30)+'</td><td'+gainCls(r.rise30)+'>'+(r.rise30==null?'—':r.rise30.toFixed(2)+'%')+'</td><td'+gainCls(r.daily)+'>'+fmt(r.daily)+'</td><td>'+r.nav+'</td><td>'+r.shares.toLocaleString()+'</td><td>'+r.amount.toLocaleString(undefined,{maximumFractionDigits:2})+'</td><td><button class="pill" onclick="deleteProduct(\''+r.code+'\')">删除</button></td></tr>';
   });
   html+='</table>';
   wrap.innerHTML=html;
@@ -322,7 +356,7 @@ function renderHoldings(){
   });
 }
 function metricsFor(share){
-  const hold=HOLD.products.find(p=>p.share_code===share);
+  const hold=HOLD.products.find(p=>p.share_code===share); if(!hold) return [];
   const h=histAsc(share).filter(x=>x[0]>=hold.purchase_date); const wan={};
   for(let i=0;i<h.length;i++){
     if(h[i][0]===hold.purchase_date) continue;
@@ -348,7 +382,16 @@ function metricsFor(share){
       if(days<=0) return null;
       return (nav/base[1]-1)*365/days*100;
     };
-    rows.push({date, nav, wan:wan[date]!=null?wan[date]:null, avg7:avg(7), avg14:avg(14), ann7:ann(7), ann14:ann(14), ann30:ann(30)});
+    const risePct=windowDays=>{
+      const cutoff=new Date(td); cutoff.setDate(cutoff.getDate()-windowDays);
+      let cand=h.filter(x=>parseD(x[0])<=cutoff && parseD(x[0])>=parseD(hold.purchase_date));
+      let base, days;
+      if(cand.length){ base=cand[cand.length-1]; days=daysBetween(base[0], date); }
+      else { base=[hold.purchase_date, hold.purchase_nav]; days=daysBetween(hold.purchase_date, date); }
+      if(days<=0) return null;
+      return (nav/base[1]-1)*100;
+    };
+    rows.push({date, nav, wan:wan[date]!=null?wan[date]:null, avg7:avg(7), avg14:avg(14), ann7:ann(7), ann14:ann(14), ann30:ann(30), rise30:risePct(30)});
   });
   return rows;
 }
@@ -361,8 +404,8 @@ function render(){
     const rows=metricsFor(p.share_code);
     const el=document.createElement('div'); el.className='card'; el.dataset.share=p.share_code;
     el.innerHTML='<h3 style="margin:0">'+p.ledger_name+' · '+latest[1]+'</h3><div class="muted">'+p.share_code+'</div>'
-      +'<div class="detail"><h4>近30日</h4><table><tr><th>净值日期</th><th>当日万收</th><th>近七日日均</th><th>近14日日均</th><th>近7日年化</th><th>近14日年化</th><th>近一月年化</th></tr>'
-      +rows.map(r=>'<tr><td>'+r.date+'</td><td>'+wanTxt(r.wan)+'</td><td>'+r.avg7.toFixed(2)+'</td><td>'+r.avg14.toFixed(2)+'</td><td>'+pctTxt(r.ann7)+'</td><td>'+pctTxt(r.ann14)+'</td><td>'+pctTxt(r.ann30)+'</td></tr>').join('')+'</table></div>';
+      +'<div class="detail"><h4>近30日</h4><table><tr><th>净值日期</th><th>当日万收</th><th>近七日日均</th><th>近14日日均</th><th>近7日年化</th><th>近14日年化</th><th>近一月年化</th><th>1月涨幅</th></tr>'
+      +rows.map(r=>'<tr><td>'+r.date+'</td><td'+gainCls(r.wan)+'>'+wanTxt(r.wan)+'</td><td'+gainCls(r.avg7)+'>'+r.avg7.toFixed(2)+'</td><td'+gainCls(r.avg14)+'>'+r.avg14.toFixed(2)+'</td><td'+annCls(r.ann7)+'>'+pctTxt(r.ann7)+'</td><td'+annCls(r.ann14)+'>'+pctTxt(r.ann14)+'</td><td'+annCls(r.ann30)+'>'+pctTxt(r.ann30)+'</td><td'+gainCls(r.rise30)+'>'+(r.rise30==null?'—':r.rise30.toFixed(2)+'%')+'</td></tr>').join('')+'</table></div>';
     el.querySelector('h3').onclick=()=>{const d=el.querySelector('.detail'); d.style.display=d.style.display==='block'?'none':'block';};
     wrap.appendChild(el);
   });
@@ -393,8 +436,8 @@ function redeemableDates(ledgerName){
 function renderProductDetail(share){
   const wrap=document.getElementById('list'); if(!wrap) return null;
   const p=navProd(share); if(!p) { wrap.innerHTML='<p class="muted">找不到该产品。</p>'; return null; }
-  const hold=HOLD.products.find(x=>x.share_code===share);
-  const asOf=viewAsOf(share); const c=calc(share, asOf);
+  const hold=HOLD.products.find(x=>x.share_code===share); if(!hold) { wrap.innerHTML='<p class="muted">该产品已不在当前持仓。</p>'; return null; }
+  const asOf=viewAsOf(share); const c=calc(share, asOf); if(!c) { wrap.innerHTML='<p class="muted">该产品暂无净值。</p>'; return null; }
   const rows=metricsFor(share);
   const {buys, sells, pending}=txForProduct(hold.ledger_name);
   const red=redeemableDates(hold.ledger_name);
@@ -417,8 +460,8 @@ function renderProductDetail(share){
     +'<div style="color:#e60012;font-size:18px;font-weight:800;margin-top:8px">持有年化 '+fmt(c.holdingAnn)+'%</div>'
     +'<div class="prod cols"><div><span class="muted">持有金额</span><b>'+c.amount.toLocaleString(undefined,{maximumFractionDigits:2})+'</b></div><div><span class="muted">当日盈亏</span><b>'+fmt(c.daily)+'</b></div><div><span class="muted">本月收益</span><b>'+fmt(c.monthly)+'</b></div><div><span class="muted">持仓盈亏</span><b>'+fmt(c.holdingPnl)+'</b></div></div>'
     +'<div class="muted">份额 '+hold.shares.toLocaleString()+' · 买入 '+hold.purchase_date+' @ '+hold.purchase_nav+'</div>'
-    +'<div class="detail" style="display:block"><h4>近30日</h4><table><tr><th>净值日期</th><th>当日万收</th><th>近七日日均</th><th>近14日日均</th><th>近7日年化</th><th>近14日年化</th><th>近一月年化</th></tr>'
-    +rows.map(r=>'<tr><td>'+r.date+'</td><td>'+wanTxt(r.wan)+'</td><td>'+r.avg7.toFixed(2)+'</td><td>'+r.avg14.toFixed(2)+'</td><td>'+pctTxt(r.ann7)+'</td><td>'+pctTxt(r.ann14)+'</td><td>'+pctTxt(r.ann30)+'</td></tr>').join('')+'</table></div>';
+    +'<div class="detail" style="display:block"><h4>近30日</h4><table><tr><th>净值日期</th><th>当日万收</th><th>近七日日均</th><th>近14日日均</th><th>近7日年化</th><th>近14日年化</th><th>近一月年化</th><th>1月涨幅</th></tr>'
+    +rows.map(r=>'<tr><td>'+r.date+'</td><td'+gainCls(r.wan)+'>'+wanTxt(r.wan)+'</td><td'+gainCls(r.avg7)+'>'+r.avg7.toFixed(2)+'</td><td'+gainCls(r.avg14)+'>'+r.avg14.toFixed(2)+'</td><td'+annCls(r.ann7)+'>'+pctTxt(r.ann7)+'</td><td'+annCls(r.ann14)+'>'+pctTxt(r.ann14)+'</td><td'+annCls(r.ann30)+'>'+pctTxt(r.ann30)+'</td><td'+gainCls(r.rise30)+'>'+(r.rise30==null?'—':r.rise30.toFixed(2)+'%')+'</td></tr>').join('')+'</table></div>';
   html+='<h4 style="margin-top:20px">买入 / 赎回 · 本产品</h4>';
   html+='<h5>买入（'+buys.length+'笔）</h5>'+(buys.length?'<table><tr><th>类型</th><th>金额</th><th>份额</th><th>净值</th><th>净值日</th><th>确认日</th><th>预估最早可赎回日</th></tr>'+buys.map(txRow).join('')+'</table>':'<p class="muted">本产品暂无买入记录。</p>');
   html+='<h5>赎回（'+sells.length+'笔）</h5>'+(sells.length?'<table><tr><th>类型</th><th>金额</th><th>份额</th><th>净值</th><th>净值日</th><th>确认日</th><th>预估最早可赎回日</th></tr>'+sells.map(txRow).join('')+'</table>':'<p class="muted">本产品暂无赎回记录。</p>');
