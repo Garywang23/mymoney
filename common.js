@@ -132,7 +132,7 @@ function renderTx(){
   const buys=TX.transactions.filter(t=>t.type==='买入').length;
   const sells=TX.transactions.filter(t=>t.type==='卖出').length;
   const pend=TX.pending||[];
-  document.getElementById('txSummary').textContent='目前8只：买入'+buys+'次、卖出'+sells+'次、待确认'+pend.length+'笔'+(pend.length?'（'+pend.map(p=>p.product+' '+p.amount.toLocaleString(undefined,{minimumFractionDigits:2})).join('、')+'）':'')+'。本机保存的记录（同浏览器）已合并显示，换设备请用详情页导出 JSON 同步到仓库。';
+  document.getElementById('txSummary').textContent='目前8只：买入'+buys+'次、卖出'+sells+'次、待确认'+pend.length+'笔'+(pend.length?'（'+pend.map(p=>p.product+' '+p.amount.toLocaleString(undefined,{minimumFractionDigits:2})).join('、')+'）':'')+'。';
   const draw=()=>{
     const m=document.getElementById('txMonth').value, inst=document.getElementById('txInst').value;
     let list=TX.transactions.filter(t=>(m==='全部月份'||t.date.startsWith(m))&&(inst==='全部机构'||t.distributor===inst));
@@ -167,7 +167,7 @@ function renderHomeTotal(){
   const wrap=document.getElementById('homeTotal'); if(!wrap) return;
   let total=0;
   HOLD.products.forEach(p=>{ const c=calc(p.share_code, viewAsOf(p.share_code)); total+=c.amount; });
-  wrap.innerHTML='<div class="muted">持仓总金额（元）</div><div style="font-size:30px;font-weight:800;color:#e60012">'+total.toLocaleString(undefined,{maximumFractionDigits:2})+'</div><p class="muted">按各产品最新管理人官网净值算：诚享、财富牛、灵动N按2026-10-26，其他5只按2026-10-23（10-26未公布，未补）。诚享2026-10-27已确认买入50,000.00已计入份额和金额，待确认已清零。只算目前8只。本机保存的记录（同浏览器）已合并计入。</p><p><a href="transactions.html">交易记录 →</a> · <a href="compare.html">产品对比 →</a></p>';
+  wrap.innerHTML='<div class="muted">持仓总金额（元）</div><div style="font-size:30px;font-weight:800;color:#e60012">'+total.toLocaleString(undefined,{maximumFractionDigits:2})+'</div><p><a href="transactions.html">交易记录 →</a> · <a href="compare.html">产品对比 →</a></p>';
 }
 function renderHomeDetail(){
   const wrap=document.getElementById('homeDetail'); if(!wrap) return;
@@ -187,7 +187,6 @@ function renderHomeDetail(){
     });
     html+='</table>';
   });
-  html+='<p class="muted">当日收益 = 当日份额 ×（当日净值 - 上一净值），份额按交易净值日算。本月按日份额算，持仓按买入日起算、多笔买入时按单次买入净值口径，与目标页逐笔口径会有差。目标页当日合计含已清仓产品，所以本页合计会比目标页小。</p>';
   wrap.innerHTML=html;
 }
 function renderCalendar(){
@@ -200,6 +199,7 @@ function renderCalendar(){
     ctrl.innerHTML='<div class="row" style="flex-wrap:wrap;gap:8px"><span>'+['day','week','month'].map(v=>'<button class="pill '+(CAL_VIEW===v?'on':'')+'" onclick="setCalView(\''+v+'\')">'+(v==='day'?'日':v==='week'?'周':'月')+'</button>').join(' ')+'</span><span><select onchange="setCalMonth(this.value)">'+months.map(m=>'<option value="'+m+'"'+(m===CAL_MONTH?' selected':'')+'>'+m+'</option>').join('')+'</select><span class="muted"> '+CAL_MONTH+'合计 '+fmt(monthTotal(cal,CAL_MONTH))+'</span></span></div>';
   }
   if(CAL_VIEW==='week'){
+    wrap.style.display='block';
     const weeks={};
     Object.keys(cal).filter(d=>d.startsWith(CAL_MONTH)).sort().forEach(d=>{
       const dt=parseD(d); const start=new Date(dt); start.setDate(dt.getDate()-dt.getDay());
@@ -207,20 +207,20 @@ function renderCalendar(){
       if(!weeks[key]) weeks[key]={start:key, end:fmtDateLocal(end), total:0, count:0};
       weeks[key].total+=cal[d]; weeks[key].count++;
     });
-    let html='<table><tr><th>周</th><th>净值日数</th><th>周收益</th></tr>';
-    Object.values(weeks).forEach(w=>{ html+='<tr><td>'+w.start.slice(5)+' ~ '+w.end.slice(5)+'</td><td>'+w.count+'</td><td'+gainCls(w.total)+'>'+fmt(w.total)+'</td></tr>'; });
-    html+='</table><p class="muted">周按周日到周六算，合计 = 该周内净值日的当日收益之和。</p>';
+    let html='';
+    Object.values(weeks).forEach(w=>{ html+='<div class="row" style="border-bottom:1px solid #eee;padding:10px 0"><span style="white-space:nowrap">'+w.start.slice(5)+' ~ '+w.end.slice(5)+' <span class="muted">'+w.count+'日</span></span><b'+gainCls(w.total)+'>'+fmt(w.total)+'</b></div>'; });
     wrap.innerHTML=html; return;
   }
   if(CAL_VIEW==='month'){
-    let html='<table><tr><th>月</th><th>净值日数</th><th>月收益</th><th></th></tr>';
+    wrap.style.display='block';
+    let html='';
     months.forEach(m=>{
       const dates=Object.keys(cal).filter(d=>d.startsWith(m));
-      html+='<tr><td>'+m+'</td><td>'+dates.length+'</td><td'+gainCls(monthTotal(cal,m))+'>'+fmt(monthTotal(cal,m))+'</td><td><button class="pill" onclick="setCalMonthView(\''+m+'\')">看日历</button></td></tr>';
+      html+='<div class="row" style="border-bottom:1px solid #eee;padding:10px 0"><span style="white-space:nowrap">'+m+' <span class="muted">'+dates.length+'日</span></span><span><b'+gainCls(monthTotal(cal,m))+'>'+fmt(monthTotal(cal,m))+'</b> <button class="pill" onclick="setCalMonthView(\''+m+'\')">看日历</button></span></div>';
     });
-    html+='</table><p class="muted">月收益 = 该月内净值日的当日收益之和，只算目前8只。</p>';
     wrap.innerHTML=html; return;
   }
+  wrap.style.display='';
   const [y, mo]=CAL_MONTH.split('-').map(Number);
   const firstWeekday=new Date(y, mo-1, 1).getDay();
   const daysInMonth=new Date(y, mo, 0).getDate();
@@ -312,7 +312,7 @@ function renderHoldings(){
       const updated=true;
       const badge=asOf.slice(5)+' ('+fmt(c.daily/c.amount*10000)+')';
       html+='<div class="card prod" data-share="'+p.share_code+'"><div class="row"><b>'+p.ledger_name+' <span class="muted">('+p.share_code+')</span></b><span style="color:#e60012;font-size:18px;font-weight:800">持有年化 '+fmt(c.holdingAnn)+'%</span><span style="color:'+(updated?'#2563eb':'#e60012')+'">'+badge+'</span></div>'
-        +'<div class="prod cols"><div><span class="muted">持有金额</span><b>'+c.amount.toLocaleString(undefined,{maximumFractionDigits:2})+'</b></div><div><span class="muted">当日盈亏</span><b>'+(updated?fmt(c.daily):'—')+'</b></div><div><span class="muted">本月收益</span><b>'+fmt(c.monthly)+'</b></div><div><span class="muted">持仓盈亏</span><b>'+fmt(c.holdingPnl)+'</b></div><div><span class="muted">持有年化（最重要，由买入日起算）</span><b style="color:#e60012">'+fmt(c.holdingAnn)+'%</b></div></div>'
+        +'<div class="prod cols"><div><span class="muted">持有金额</span><b>'+c.amount.toLocaleString(undefined,{maximumFractionDigits:2})+'</b></div><div><span class="muted">当日盈亏</span><b>'+(updated?fmt(c.daily):'—')+'</b></div><div><span class="muted">本月收益</span><b>'+fmt(c.monthly)+'</b></div><div><span class="muted">持仓盈亏</span><b>'+fmt(c.holdingPnl)+'</b></div><div><span class="muted">持有年化</span><b style="color:#e60012">'+fmt(c.holdingAnn)+'%</b></div></div>'
         +'<div class="muted">份额 '+p.shares.toLocaleString()+' · 净值 '+c.cur[1]+'（'+c.cur[0]+'） · 买入 '+p.purchase_date+' @ '+p.purchase_nav+' · '+other+'</div></div>';
     });
   });
@@ -368,8 +368,8 @@ function render(){
     const hist=p.history_desc, latest=hist.slice().sort((a,b)=>b[0].localeCompare(a[0]))[0];
     const rows=metricsFor(p.share_code);
     const el=document.createElement('div'); el.className='card'; el.dataset.share=p.share_code;
-    el.innerHTML='<h3 style="margin:0">'+p.ledger_name+' · '+latest[1]+'</h3><div class="muted">'+p.manager+' · '+p.registration_code+' / '+p.share_code+' · 净值以管理人官网为准</div>'
-      +'<div class="detail"><canvas></canvas><h4>近30自然日数据详情（由净值算出，不是复制的）</h4><table><tr><th>净值日期</th><th>当日万收</th><th>近七日日均</th><th>近14日日均</th><th>近7日年化</th><th>近14日年化</th><th>近一月年化</th></tr>'
+    el.innerHTML='<h3 style="margin:0">'+p.ledger_name+' · '+latest[1]+'</h3><div class="muted">'+p.manager+' · '+p.registration_code+' / '+p.share_code+'</div>'
+      +'<div class="detail"><canvas></canvas><h4>近30自然日数据详情</h4><table><tr><th>净值日期</th><th>当日万收</th><th>近七日日均</th><th>近14日日均</th><th>近7日年化</th><th>近14日年化</th><th>近一月年化</th></tr>'
       +rows.map(r=>'<tr><td>'+r.date+'</td><td>'+wanTxt(r.wan)+'</td><td>'+r.avg7.toFixed(2)+'</td><td>'+r.avg14.toFixed(2)+'</td><td>'+pctTxt(r.ann7)+'</td><td>'+pctTxt(r.ann14)+'</td><td>'+pctTxt(r.ann30)+'</td></tr>').join('')+'</table></div>';
     el.querySelector('h3').onclick=()=>{const d=el.querySelector('.detail'); d.style.display=d.style.display==='block'?'none':'block'; if(d.style.display==='block') draw(el.querySelector('canvas'), hist);};
     wrap.appendChild(el);
@@ -421,14 +421,14 @@ function renderProductDetail(share){
     return '<tr><td style="color:'+(isBuy?'#e60012':'#0a7d4a')+'">'+(isBuy?'买入':'赎回')+'</td><td>'+t.amount.toLocaleString(undefined,{minimumFractionDigits:2})+'</td><td>'+t.shares.toLocaleString()+'</td><td>'+navTxt+'</td><td>'+t.nav_date+'（申请日）</td><td>'+t.date+'（确认日）</td><td>'+redTxt+'</td></tr>';
   };
   let html='<h3 style="margin:0">'+hold.ledger_name+' · '+c.cur[1]+'（'+c.cur[0]+'）</h3>'
-    +'<div class="muted">'+hold.distributor+' · '+hold.manager+' · '+p.registration_code+' / '+p.share_code+' · 净值以管理人官网为准</div>'
+    +'<div class="muted">'+hold.distributor+' · '+hold.manager+' · '+p.registration_code+' / '+p.share_code+'</div>'
     +'<div style="color:#e60012;font-size:18px;font-weight:800;margin-top:8px">持有年化 '+fmt(c.holdingAnn)+'%</div>'
-    +'<div class="prod cols"><div><span class="muted">持有金额</span><b>'+c.amount.toLocaleString(undefined,{maximumFractionDigits:2})+'</b></div><div><span class="muted">当日盈亏</span><b>'+fmt(c.daily)+'</b></div><div><span class="muted">本月收益</span><b>'+fmt(c.monthly)+'</b></div><div><span class="muted">持仓盈亏</span><b>'+fmt(c.holdingPnl)+'</b></div><div><span class="muted">持有年化（最重要，由买入日起算）</span><b style="color:#e60012">'+fmt(c.holdingAnn)+'%</b></div></div>'
-    +'<div class="muted">当前份额 '+hold.shares.toLocaleString()+' · 可赎份额 '+hold.shares.toLocaleString()+'（目标页口径 = 当前份额，未按最短持有期逐笔扣减） · 买入 '+hold.purchase_date+' @ '+hold.purchase_nav
-    +(red?(' · 最短持有 '+red.days+'天 · 按确认日+持有期算：最早一笔可赎回 '+red.earliest+'，最新一笔可赎回 '+red.latest+'（节假日以产品公告为准）'):'')+'</div>'
-    +'<div class="detail" style="display:block"><canvas id="prodChart"></canvas><h4>近30自然日数据详情（由净值算出，不是复制的）</h4><table><tr><th>净值日期</th><th>当日万收</th><th>近七日日均</th><th>近14日日均</th><th>近7日年化</th><th>近14日年化</th><th>近一月年化</th></tr>'
+    +'<div class="prod cols"><div><span class="muted">持有金额</span><b>'+c.amount.toLocaleString(undefined,{maximumFractionDigits:2})+'</b></div><div><span class="muted">当日盈亏</span><b>'+fmt(c.daily)+'</b></div><div><span class="muted">本月收益</span><b>'+fmt(c.monthly)+'</b></div><div><span class="muted">持仓盈亏</span><b>'+fmt(c.holdingPnl)+'</b></div><div><span class="muted">持有年化</span><b style="color:#e60012">'+fmt(c.holdingAnn)+'%</b></div></div>'
+    +'<div class="muted">当前份额 '+hold.shares.toLocaleString()+' · 可赎份额 '+hold.shares.toLocaleString()+' · 买入 '+hold.purchase_date+' @ '+hold.purchase_nav
+    +(red?(' · 最短持有 '+red.days+'天 · 最早一笔可赎回 '+red.earliest+'，最新一笔可赎回 '+red.latest):'')+'</div>'
+    +'<div class="detail" style="display:block"><canvas id="prodChart"></canvas><h4>近30自然日数据详情</h4><table><tr><th>净值日期</th><th>当日万收</th><th>近七日日均</th><th>近14日日均</th><th>近7日年化</th><th>近14日年化</th><th>近一月年化</th></tr>'
     +rows.map(r=>'<tr><td>'+r.date+'</td><td>'+wanTxt(r.wan)+'</td><td>'+r.avg7.toFixed(2)+'</td><td>'+r.avg14.toFixed(2)+'</td><td>'+pctTxt(r.ann7)+'</td><td>'+pctTxt(r.ann14)+'</td><td>'+pctTxt(r.ann30)+'</td></tr>').join('')+'</table></div>';
-  html+='<h4 style="margin-top:20px">买入 / 赎回 · 本产品</h4><p class="muted">T+1口径：申请日即净值日，确认日为下一个工作日（周一至周五，节假日需手动调）。每次买入的预估最早可赎回日 = 确认日 + 最短持有期，未来日期显示还有几天，过去日期就是已可赎回。节假日以产品公告为准。下面只列本产品，已清仓产品不列。</p>';
+  html+='<h4 style="margin-top:20px">买入 / 赎回 · 本产品</h4>';
   html+='<h5>买入（'+buys.length+'笔）</h5>'+(buys.length?'<table><tr><th>类型</th><th>金额</th><th>份额</th><th>净值</th><th>净值日</th><th>确认日</th><th>预估最早可赎回日</th></tr>'+buys.map(txRow).join('')+'</table>':'<p class="muted">本产品暂无买入记录。</p>');
   html+='<h5>赎回（'+sells.length+'笔）</h5>'+(sells.length?'<table><tr><th>类型</th><th>金额</th><th>份额</th><th>净值</th><th>净值日</th><th>确认日</th><th>预估最早可赎回日</th></tr>'+sells.map(txRow).join('')+'</table>':'<p class="muted">本产品暂无赎回记录。</p>');
   html+='<h5>待确认（'+pending.length+'笔）</h5>'+(pending.length?pending.map(t=>'<div class="row" style="border-bottom:1px solid #eee;padding:8px 0"><span>待确认 · '+(t.redeem_shares?'赎回份额 '+t.redeem_shares.toLocaleString()+' · 金额待净值公布后算':'金额 '+t.amount.toLocaleString(undefined,{minimumFractionDigits:2}))+' · 份额 -- · 确认日 '+(t.planned_confirm||'--')+(t.nav_date?' · 净值日 '+t.nav_date:'')+'</span></div>').join(''):'<p class="muted">本产品暂无待确认交易。</p>');

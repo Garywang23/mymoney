@@ -9,10 +9,10 @@
 <body>
 <div class="wrap">
 <h1 class="pagetitle">个人台账</h1>
-<nav class="nav"><a href="index.html" class="">首页</a><a href="calendar.html" class="on">收益日历</a><a href="compare.html" class="">产品对比</a><a href="transactions.html" class="">交易记录</a></nav>
+<nav class="nav"><a href="index.html" class="">首页</a><a href="compare.html" class="">产品对比</a><a href="transactions.html" class="">交易记录</a></nav>
 
 <div class="card">
-<div class="row"><h2 id="dayTitle">每日详细</h2><span><a href="index.html">回首页</a> · <a href="calendar.html">收益日历</a></span></div>
+<div class="row"><h2 id="dayTitle">每日详细</h2><span><a href="index.html">回首页</a></span></div>
 <div id="dayDetail">正在加载…</div>
 </div>
 
@@ -29,7 +29,7 @@ loadData().then(()=>{
   if(!rows){ box.innerHTML='<p class="muted">这一天目前8只没有净值收益。</p>'; return; }
   const oldv=OLD_CAL[ds];
   let totAmt=rows.reduce((a,r)=>a+r.shares*r.nav,0);
-  let h='<h4 style="margin:12px 0 6px">'+ds+' · 当前8只合计 '+fmt(cal[ds])+' · 当日持有金额合计 '+totAmt.toLocaleString(undefined,{maximumFractionDigits:2})+(oldv!=null?' · 目标页日历当日合计 '+fmt(oldv)+'，差额 '+fmt(oldv-cal[ds])+'（已清仓当日收益 + 诚享其他日期四舍五入误差，诚享现已用北银官网精确数）':'')+'</h4>';
+  let h='<h4 style="margin:12px 0 6px">'+ds+' · 当前8只合计 '+fmt(cal[ds])+' · 当日持有金额合计 '+totAmt.toLocaleString(undefined,{maximumFractionDigits:2})+'</h4>';
   ['网商银行','微众稳健'].forEach(g=>{
     const gr=rows.filter(r=>r.distributor===g);
     if(!gr.length) return;
@@ -41,7 +41,6 @@ loadData().then(()=>{
     });
     h+='</table>';
   });
-  h+='<p class="muted">公式：当日收益 = 当日份额 ×（当日净值 - 上一净值）。当日份额按交易净值日算：净值日在当日之前的买入计入，卖出在净值日之后的才扣减。净值以管理人官网为准，未公布的日期不显示、不反推。点产品名进30日详细图请去产品对比页，或直接打开 detail.html?share=子份额代码。</p>';
   box.innerHTML=h;
 });
 

@@ -9,17 +9,15 @@
 <body>
 <div class="wrap">
 <h1 class="pagetitle">个人台账</h1>
-<nav class="nav"><a href="index.html" class="">首页</a><a href="calendar.html" class="">收益日历</a><a href="compare.html" class="">产品对比</a><a href="transactions.html" class="">交易记录</a></nav>
+<nav class="nav"><a href="index.html" class="">首页</a><a href="compare.html" class="">产品对比</a><a href="transactions.html" class="">交易记录</a></nav>
 
 <div class="card">
 <div class="row"><h2>产品详情</h2><span><a href="index.html">回首页</a> · <a href="transactions.html">交易记录</a></span></div>
 <div id="list"></div>
-<p class="muted">本页只显示本产品的信息，不列其他产品。持有年化 = 持仓盈亏 / 本金 × 365 / 持有天数，持仓盈亏 = 份额 ×（最新净值 - 买入净值），本金 = 份额 × 买入净值，持有天数 = 最新净值日 - 买入日，全部从买入日起算，买入日之前的净值不用。其他公式：当日万收=(当日净值/上一净值-1)×10000；近七日日均=近7个自然日内当日万收之和/7，近14日同理；近7日年化=(当日净值/7日前最近净值-1)×365/实际天数，近14日、近一月同理。成立以来年化已按你的要求去掉。净值以管理人官网为准，本页不能自动获取最新净值，未公布的日期不反推、不显示。</p>
 </div>
 <div class="card" style="margin-top:16px">
 <details open>
 <summary>新增买入 / 赎回（本产品，本机保存，首页总额和交易记录页同浏览器联动）</summary>
-<p class="muted">T+1口径：申请日即净值日，确认日默认下一个工作日（周一至周五，节假日请手动改确认日）。买入填金额，赎回填份额。申请日的净值如果在历史里有，就按该净值算份额/金额并计入份额；如果净值还没公布，就记为待确认，不计入份额。加入后会保存在本浏览器里，刷新不丢，首页总额和交易记录页（同一个浏览器）都会联动；换设备或清浏览器数据会丢，要同步到仓库请点导出交易 JSON 发给助理。确认买入如果和一笔待确认金额、产品相同，会自动删掉那笔待确认，不会重复算。</p>
 <label>类型 <select id="txType"><option value="买入">买入</option><option value="赎回">赎回</option></select></label>
 <label>申请日 <input id="txApply" type="date"></label>
 <label>确认日 <input id="txConfirm" type="date"></label>

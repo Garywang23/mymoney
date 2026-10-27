@@ -3,25 +3,15 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="refresh" content="0; url=index.html">
 <title>收益日历 · 个人台账</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 <div class="wrap">
-<h1 class="pagetitle">个人台账</h1>
-<nav class="nav"><a href="index.html" class="">首页</a><a href="calendar.html" class="on">收益日历</a><a href="compare.html" class="">产品对比</a><a href="transactions.html" class="">交易记录</a></nav>
-
 <div class="card">
-<div class="row"><h2>收益日历</h2><span class="muted">点有数的日期进每日详细</span></div>
-<div id="calControls" style="margin:8px 0"></div>
-<div class="cal" id="calendar"></div>
-<p class="muted">点任意有数的日期，进入每日详细页，里面是当天每个产品的份额、净值、当日金额、收益，按网商银行、微众稳健分组。日历每天的数 = 当天持有份额 × 当天净值涨跌之和，份额是当天的，不是现在的。9月起可选。</p>
+<p><a href="index.html">收益日历已移到首页，点击前往</a></p>
 </div>
-
 </div>
-<script src="common.js"></script>
-<script>
-loadData().then(()=>{renderCalendar();});
-</script>
 </body>
 </html>
