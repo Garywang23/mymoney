@@ -270,7 +270,7 @@ function renderCalendar(){
   if(!CAL_MONTH || !months.includes(CAL_MONTH)) CAL_MONTH=months[months.length-1];
   const ctrl=document.getElementById('calControls');
   if(ctrl){
-    ctrl.innerHTML='<div class="row" style="flex-wrap:wrap;gap:8px"><span>'+['day','week','month'].map(v=>'<button class="pill '+(CAL_VIEW===v?'on':'')+'" onclick="setCalView(\''+v+'\')">'+(v==='day'?'日':v==='week'?'周':'月')+'</button>').join(' ')+'</span><span><button class="pill" onclick="prevCalMonth()">‹</button><b>'+CAL_MONTH.slice(0,4)+'年'+CAL_MONTH.slice(5)+'月</b><button class="pill" onclick="nextCalMonth()">›</button><select onchange="setCalMonth(this.value)">'+months.map(m=>'<option value="'+m+'"'+(m===CAL_MONTH?' selected':'')+'>'+m+'</option>').join('')+'</select><span'+gainCls(monthTotal(cal,CAL_MONTH))+'> '+CAL_MONTH+'合计 '+fmt(monthTotal(cal,CAL_MONTH))+'</span></span></div>';
+    ctrl.innerHTML='<div class="row" style="flex-wrap:wrap;gap:8px"><span>'+['day','week','month'].map(v=>'<button class="pill '+(CAL_VIEW===v?'on':'')+'" onclick="setCalView(\''+v+'\')">'+(v==='day'?'日':v==='week'?'周':'月')+'</button>').join(' ')+'</span><span><button class="pill" onclick="prevCalMonth()">‹</button><b>'+CAL_MONTH.slice(0,4)+'年'+CAL_MONTH.slice(5)+'月</b><button class="pill" onclick="nextCalMonth()">›</button><select onchange="setCalMonth(this.value)">'+months.map(m=>'<option value="'+m+'"'+(m===CAL_MONTH?' selected':'')+'>'+m+'</option>').join('')+'</select></span></div>';
   }
   if(CAL_VIEW==='week'){
     wrap.style.display='block';
