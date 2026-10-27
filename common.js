@@ -120,27 +120,19 @@ function renderTx(){
   document.getElementById('txMonth').onchange=draw; document.getElementById('txInst').onchange=draw; draw();
 }
 function renderCalendar(){
-  const wrap=document.getElementById('calendar'); let html=['日','一','二','三','四','五','六'].map(d=>'<div class="muted"><b>'+d+'</b></div>').join('');
+  const wrap=document.getElementById('calendar'); if(!wrap) return;
+  let html=['日','一','二','三','四','五','六'].map(d=>'<div class="muted"><b>'+d+'</b></div>').join('');
   for(let i=0;i<4;i++) html+='<div></div>';
-  const {cal, det}=lotCalendar();
+  const {cal}=lotCalendar();
   for(let d=1;d<=31;d++){
     const ds='2026-10-'+String(d).padStart(2,'0'); const v=cal[ds];
-    html+='<div class="cell '+(v!=null?'has':'')+'" data-date="'+ds+'" style="'+(v!=null?'cursor:pointer':'')+'">'+d+(v!=null?'<div class="v">'+fmt(v)+'</div>':'')+'</div>';
+    if(v!=null){
+      html+='<div class="cell has"><a href="day.html?date='+ds+'">'+d+'<div class="v">'+fmt(v)+'</div></a></div>';
+    } else {
+      html+='<div class="cell">'+d+'</div>';
+    }
   }
   wrap.innerHTML=html;
-  wrap.querySelectorAll('.cell[data-date]').forEach(el=>{
-    el.onclick=()=>{
-      const ds=el.dataset.date, rows=det[ds];
-      const box=document.getElementById('calDetail');
-      if(!rows){ box.innerHTML=''; return; }
-      const oldv=OLD_CAL[ds];
-      let totAmt=rows.reduce((a,r)=>a+r.shares*r.nav,0); let h='<h4 style="margin:12px 0 6px">'+ds+' · 当前8只合计 '+fmt(cal[ds])+' · 当日持有金额合计 '+totAmt.toLocaleString(undefined,{maximumFractionDigits:2})+(oldv!=null?' · 目标页日历当日合计 '+fmt(oldv)+'，差额 '+fmt(oldv-cal[ds])+'（已清仓当日收益 + 诚享四舍五入误差，10-23当日差额 25.55 全是诚享）':'')+'</h4><table><tr><th>产品</th><th>当日份额</th><th>上一净值日</th><th>上一净值</th><th>当日净值</th><th>当日金额</th><th>当日收益</th></tr>';
-      rows.forEach(r=>{ const gainTxt=(r.name.indexOf('诚享')>=0 && r.prev===r.nav) ? '精度不足' : fmt(r.gain); h+='<tr><td>'+r.name+'</td><td>'+r.shares.toLocaleString()+'</td><td>'+r.prevDate+'</td><td>'+r.prev+'</td><td>'+r.nav+'</td><td>'+(r.shares*r.nav).toLocaleString(undefined,{maximumFractionDigits:2})+'</td><td>'+gainTxt+'</td></tr>'; });
-      h+='</table><p class="muted">公式：当日收益 = 当日份额 ×（当日净值 - 上一净值）。当日份额按交易净值日算：净值日在当日之前的买入计入，卖出在净值日之后的才扣减。</p>';
-      if(rows.some(r=>r.name.indexOf('诚享')>=0 && r.prev===r.nav)){ h+='<p class="muted">诚享注意：上一净值与当日净值在中国理财网都显示 1.0152，但实际不同——目标页 23 日当日为 +25.55，4 位净值算出的 +0.00 是错的，不是 0。23 日精确净值约 355,334.35 ÷ 350,000 = 1.015241，22 日精确净值约 1.015241 − 25.55 ÷ 350,000 = 1.015168，两者都四舍五入到 1.0152，涨幅 0.000073 藏在第 5 位。正在查北银理财精确净值，查到后再替换 4 位数。</p>'; }
-      box.innerHTML=h;
-    };
-  });
 }
 function renderCompare(){
   const wrap=document.getElementById('compareTable'); if(!DATA||!HOLD) return;
@@ -164,8 +156,8 @@ function renderCompare(){
   });
   rows.sort((a,b)=>b.wan-a.wan);
   let html='<table><tr><th>产品</th><th>净值日期</th><th>最新净值</th><th>当日万收</th><th>7日日均</th><th>14日日均</th><th>7日年化</th><th>14日年化</th><th>1月年化</th><th>7日涨幅</th><th>14日涨幅</th><th>当日收益</th><th>持有份额</th><th>持有金额</th></tr>';
-  rows.forEach(r=>{
-    html+='<tr><td><b>'+r.name+'</b><br><span class="muted">'+r.code+'</span></td><td>'+r.date.slice(5)+'</td><td>'+r.nav+'</td><td>'+r.wan.toFixed(2)+'</td><td>'+r.avg7.toFixed(2)+'</td><td>'+r.avg14.toFixed(2)+'</td><td>'+pctTxt(r.ann7)+'</td><td>'+pctTxt(r.ann14)+'</td><td>'+pctTxt(r.ann30)+'</td><td>'+(r.rise7==null?'—':r.rise7.toFixed(2)+'%')+'</td><td>'+(r.rise14==null?'—':r.rise14.toFixed(2)+'%')+'</td><td>'+fmt(r.daily)+'</td><td>'+r.shares.toLocaleString()+'</td><td>'+r.amount.toLocaleString(undefined,{maximumFractionDigits:2})+'</td></tr>';
+  rows.forEach((r,idx)=>{
+    html+='<tr'+(idx===0?' style="background:#fff7e6"':'')+'><td><a href="detail.html?share='+encodeURIComponent(r.code)+'">'+r.name+'</a><br><span class="muted">'+r.code+'</span></td><td>'+r.date.slice(5)+'</td><td>'+r.nav+'</td><td>'+r.wan.toFixed(2)+'</td><td>'+r.avg7.toFixed(2)+'</td><td>'+r.avg14.toFixed(2)+'</td><td>'+pctTxt(r.ann7)+'</td><td>'+pctTxt(r.ann14)+'</td><td>'+pctTxt(r.ann30)+'</td><td>'+(r.rise7==null?'—':r.rise7.toFixed(2)+'%')+'</td><td>'+(r.rise14==null?'—':r.rise14.toFixed(2)+'%')+'</td><td>'+fmt(r.daily)+'</td><td>'+r.shares.toLocaleString()+'</td><td>'+r.amount.toLocaleString(undefined,{maximumFractionDigits:2})+'</td></tr>';
   });
   html+='</table>';
   wrap.innerHTML=html;

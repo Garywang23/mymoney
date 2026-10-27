@@ -39,3 +39,7 @@ a{color:#2563eb}
 .nav a.on{background:#fff;color:#222;font-weight:700}
 .nav a:hover{background:#fff;color:#222}
 .pagetitle{color:#fff;margin:0 0 16px;font-size:22px}
+
+.cal .cell a{text-decoration:none;color:inherit;display:block}
+.cal .cell a:hover{text-decoration:underline}
+.cal .cell.has a{color:#222}

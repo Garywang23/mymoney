@@ -12,28 +12,20 @@
 <nav class="nav"><a href="index.html" class="on">首页</a><a href="calendar.html" class="">收益日历</a><a href="compare.html" class="">产品对比</a><a href="transactions.html" class="">交易中心</a></nav>
 
 <div class="card">
-<div class="row"><h2 id="leftTitle">收益总揽</h2></div>
-<div class="big" id="leftBig">—</div>
-<div class="center" id="leftSub">—</div>
-<div class="miniGrid">
-<div class="mini"><div class="lab">本月收益（目前8只，按日份额算）</div><div class="val" id="monthPnl">—</div></div>
-<div class="mini"><div class="lab">说明</div><div class="val" id="monthAnn">—</div></div>
-</div>
-<p class="muted">本月收益 = 10月每天“当日份额 × 当日净值涨跌”之和，只算目前8只。目标页日历合计 2,302.80 含已清仓产品当日收益，按你的要求已清仓不录入，所以本页本月合计会比它小，这不是算错。目标页目前8只月收益合计 1,924.65，本页算出 1,908.39（到10-23），差 16.26 全在诚享：它在中国理财网只显示4位小数。</p>
-<p class="muted">净值说明：净值日期是估值日，公布日是下一个工作日。页面按净值日期算当日收益，和目标页日历日期一致。最新净值日为中国理财网已公布的 2026-10-23，10-26 净值未查到时不反推、不显示，等公布后再查再填。</p>
+<div class="row"><h2>收益日历</h2><span class="muted">2026年10月 · 有收益的日期可点，点进去是每日详细</span></div>
+<div class="cal" id="calendar"></div>
+<p class="muted">只算目前8只。目标页日历合计含已清仓产品，所以本页合计会比目标页小，差额在每日详细页里列出来了。最新净值日 2026-10-23，10-26 净值未全部公布，不反推、不显示。</p>
 </div>
 <div class="card" style="margin-top:16px">
-<div class="row"><h2 id="detailTitle">收益明细</h2><span><button class="pill on">分组</button></span></div>
-<div style="margin-top:10px"><button class="pill on" id="dTabDist">代销</button> <button class="pill" id="dTabMgr">管理</button> <select id="instSel"></select> <button class="pill" id="multiBtn">多选</button></div>
-<div id="multiBox" style="display:none;margin-top:8px"></div>
-<div id="holdings">正在加载…</div>
-<p class="muted">点任意产品行，会打开该产品的详情页（新页面），里面有净值走势、净值历史和近30自然日指标。日历、对比、交易中心在上面导航里，都是独立页面，不再都堆在首页。</p>
+<div class="row"><h2>产品对比</h2><span class="muted">按当日万收从高到低 · 点产品名进30日详细图</span></div>
+<div id="compareTable" style="overflow-x:auto">正在加载…</div>
+<p class="muted">最新净值日均为 2026-10-23。只显示能由净值算出来的：当日万收、7/14日日均、7/14日年化、1月年化、7/14日涨幅、当日收益、份额、金额。成立以来年化、3月年化需要成立日/90日净值，30日净值里算不出来，不显示。诚享22/23日已用北银官网精确净值，其他日期仍为中国理财网4位数。</p>
 </div>
 
 </div>
 <script src="common.js"></script>
 <script>
-loadData().then(()=>{buildInstControls(); applyView(); renderHoldings();});
+loadData().then(()=>{renderCalendar(); renderCompare();});
 </script>
 </body>
 </html>

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>每日详细 · 个人台账</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="wrap">
+<h1 class="pagetitle">个人台账</h1>
+<nav class="nav"><a href="index.html" class="">首页</a><a href="calendar.html" class="on">收益日历</a><a href="compare.html" class="">产品对比</a><a href="transactions.html" class="">交易中心</a></nav>
+
+<div class="card">
+<div class="row"><h2 id="dayTitle">每日详细</h2><span><a href="index.html">回首页</a> · <a href="calendar.html">收益日历</a></span></div>
+<div id="dayDetail">正在加载…</div>
+</div>
+
+</div>
+<script src="common.js"></script>
+<script>
+
+loadData().then(()=>{
+  const ds=new URLSearchParams(location.search).get('date')||'2026-10-23';
+  document.getElementById('dayTitle').textContent='收益明细 · '+ds;
+  const {cal, det}=lotCalendar();
+  const rows=det[ds];
+  const box=document.getElementById('dayDetail');
+  if(!rows){ box.innerHTML='<p class="muted">这一天目前8只没有净值收益。</p>'; return; }
+  const oldv=OLD_CAL[ds];
+  let totAmt=rows.reduce((a,r)=>a+r.shares*r.nav,0);
+  let h='<h4 style="margin:12px 0 6px">'+ds+' · 当前8只合计 '+fmt(cal[ds])+' · 当日持有金额合计 '+totAmt.toLocaleString(undefined,{maximumFractionDigits:2})+(oldv!=null?' · 目标页日历当日合计 '+fmt(oldv)+'，差额 '+fmt(oldv-cal[ds])+'（已清仓当日收益 + 诚享其他日期四舍五入误差）':'')+'</h4><table><tr><th>产品</th><th>当日份额</th><th>上一净值日</th><th>上一净值</th><th>当日净值</th><th>当日金额</th><th>当日收益</th></tr>';
+  rows.forEach(r=>{
+    const gainTxt=(r.name.indexOf('诚享')>=0 && r.prev===r.nav) ? '精度不足' : fmt(r.gain);
+    h+='<tr><td>'+r.name+'</td><td>'+r.shares.toLocaleString()+'</td><td>'+r.prevDate+'</td><td>'+r.prev+'</td><td>'+r.nav+'</td><td>'+(r.shares*r.nav).toLocaleString(undefined,{maximumFractionDigits:2})+'</td><td>'+gainTxt+'</td></tr>';
+  });
+  h+='</table><p class="muted">公式：当日收益 = 当日份额 ×（当日净值 - 上一净值）。当日份额按交易净值日算：净值日在当日之前的买入计入，卖出在净值日之后的才扣减。点产品名进30日详细图请回首页产品对比，或直接打开 detail.html?share=子份额代码。</p>';
+  if(rows.some(r=>r.name.indexOf('诚享')>=0 && r.prev===r.nav)){ h+='<p class="muted">诚享注意：上一净值与当日净值在中国理财网都显示4位且相同，不代表实际相同，4位算出的0是错的。22/23日已换成北银官网精确数，其他日期仍为4位，正在逐日核对。</p>'; }
+  box.innerHTML=h;
+});
+
+</script>
+</body>
+</html>
