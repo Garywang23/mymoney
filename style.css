@@ -9,8 +9,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 .homeGrid .card{margin-top:0 !important}
 @media(max-width:1000px){.homeGrid{grid-template-columns:1fr}}
 .prod .cols.cols6{grid-template-columns:repeat(3,1fr)}
-#compareTable table th,#compareTable table td{white-space:nowrap}
-#homeDetail table td,#dayDetail table td,.detail table td{white-space:nowrap}
+table{table-layout:auto;width:100%}
+#compareTable table,#homeDetail table,#dayDetail table,.detail table{width:100%}
 .topTabs{display:flex;background:#e9e6fb;border-radius:12px;padding:4px;margin-bottom:16px}
 .topTabs button{flex:1;border:0;background:transparent;padding:10px;border-radius:9px;font-size:15px;cursor:pointer;color:#555}
 .topTabs button.on{background:#fff;font-weight:700;color:#222;box-shadow:0 1px 4px rgba(0,0,0,.12)}
@@ -39,7 +39,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 .cal .cell .v{font-size:12px}
 .detail{display:none;margin-top:10px;border-top:1px dashed #ddd;padding-top:10px}
 table{width:100%;border-collapse:collapse;font-size:13px}th,td{border-bottom:1px solid #eee;padding:5px;text-align:left}
-#compareTable th{cursor:pointer;white-space:nowrap;user-select:none}
+#compareTable th{cursor:pointer;user-select:none}
 #compareTable th:hover{color:#2563eb}
 .gain-pos{color:#e60012;font-weight:600}
 .gain-neg{color:#0a7d4a;font-weight:600}

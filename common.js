@@ -274,7 +274,7 @@ let CMP_SORT={key:'wan',dir:-1};
 function sortCompare(key){ if(CMP_SORT.key===key) CMP_SORT.dir*=-1; else CMP_SORT={key,dir:key==='name'?1:-1}; renderCompare(); }
 function gainCls(v){ return v==null?'':(v>0?' class="gain-pos"':' class="gain-neg"'); }
 function annCls(v){ if(v==null) return ''; if(v<0) return ' class="gain-neg"'; return v>2?' class="ann-high"':''; }
-function nonPosDays(share){ const rows=metricsFor(share); const bad=rows.filter(r=>r.wan!=null&&r.wan<=0); return {count:bad.length, dates:bad.map(r=>r.date), list:bad}; }
+function zeroDays(share){ const rows=metricsFor(share); if(!rows.length) return {count:0, dates:[], list:[]}; const month=rows[0].date.slice(0,7); const bad=rows.filter(r=>r.wan===0 && r.date.startsWith(month)); return {count:bad.length, dates:bad.map(r=>r.date), list:bad}; }
 function renderCompare(){
   const wrap=document.getElementById('compareTable'); if(!DATA||!HOLD) return;
   if(CMP_SORT.key==='rise7'||CMP_SORT.key==='rise14') CMP_SORT={key:'rise30',dir:-1};
@@ -286,7 +286,7 @@ function renderCompare(){
     const latest=h[h.length-1], prev=h.length>1?h[h.length-2]:null;
     const allM=metricsFor(p.share_code);
     const m=allM.find(r=>r.date===latest[0]) || allM[0];
-    const nonpos=allM.filter(r=>r.wan!=null&&r.wan<=0).length;
+    const month=allM.length?allM[0].date.slice(0,7):''; const zero=allM.filter(r=>r.wan===0 && r.date.startsWith(month)).length;
     const wan=prev?(latest[1]/prev[1]-1)*10000:0;
     const rise=win=>{
       const td=parseD(latest[0]); const cutoff=new Date(td); cutoff.setDate(cutoff.getDate()-win);
@@ -298,7 +298,7 @@ function renderCompare(){
     };
     const r30=rise(30);
     const c=calc(p.share_code, latest[0]); if(!c) return;
-    rows.push({name:p.ledger_name, code:p.share_code, distributor:p.distributor, date:latest[0], nav:latest[1], wan, avg7:m?m.avg7:0, avg14:m?m.avg14:0, ann7:m?m.ann7:null, ann14:m?m.ann14:null, ann30:m?m.ann30:null, rise30:r30?r30.pct:null, nonpos, daily:c.daily});
+    rows.push({name:p.ledger_name, code:p.share_code, distributor:p.distributor, date:latest[0], nav:latest[1], wan, avg7:m?m.avg7:0, avg14:m?m.avg14:0, ann7:m?m.ann7:null, ann14:m?m.ann14:null, ann30:m?m.ann30:null, rise30:r30?r30.pct:null, zero, daily:c.daily});
   });
   const k=CMP_SORT.key, d=CMP_SORT.dir;
   rows.sort((a,b)=>{
@@ -309,7 +309,7 @@ function renderCompare(){
     if(typeof va==='string') return d*va.localeCompare(vb);
     return d*(va-vb);
   });
-  const cols=[['name','产品'],['date','净值日期'],['wan','当日万收'],['avg7','7日日均'],['avg14','14日日均'],['ann7','7日年化'],['ann14','14日年化'],['ann30','1月年化'],['rise30','1月涨幅'],['nonpos','挂0/负收益日'],['daily','当日收益'],['nav','最新净值'],['del','操作']];
+  const cols=[['name','产品'],['date','净值日期'],['wan','当日万收'],['avg7','7日日均'],['avg14','14日日均'],['ann7','7日年化'],['ann14','14日年化'],['ann30','1月年化'],['rise30','1月涨幅'],['zero','挂0'],['daily','当日收益'],['nav','最新净值'],['del','操作']];
   const header='<tr>'+cols.map(([key,label])=>key==='del'?'<th>操作</th>':'<th onclick="sortCompare(\''+key+'\')">'+label+(CMP_SORT.key===key?(CMP_SORT.dir===1?' ▲':' ▼'):'')+'</th>').join('')+'</tr>';
   const groupOrder=['网商银行','微众稳健'];
   rows.forEach(r=>{ if(!groupOrder.includes(r.distributor)) groupOrder.push(r.distributor); });
@@ -319,7 +319,7 @@ function renderCompare(){
     html+='<div class="split-group"><div class="groupHead"><span>'+g+'('+gr.length+')</span></div><div style="overflow-x:auto">';
     html+='<table>'+header;
     gr.forEach(r=>{
-      html+='<tr'+(globalIdx===0?' style="background:#fff7e6"':'')+'><td><a href="detail.html?share='+encodeURIComponent(r.code)+'">'+r.name+'</a><br><span class="muted">'+r.code+'</span></td><td>'+r.date.slice(5)+'</td><td'+gainCls(r.wan)+'>'+r.wan.toFixed(2)+'</td><td'+gainCls(r.avg7)+'>'+r.avg7.toFixed(2)+'</td><td'+gainCls(r.avg14)+'>'+r.avg14.toFixed(2)+'</td><td'+annCls(r.ann7)+'>'+pctTxt(r.ann7)+'</td><td'+annCls(r.ann14)+'>'+pctTxt(r.ann14)+'</td><td'+annCls(r.ann30)+'>'+pctTxt(r.ann30)+'</td><td'+gainCls(r.rise30)+'>'+(r.rise30==null?'—':r.rise30.toFixed(2)+'%')+'</td><td'+(r.nonpos>0?' class="gain-neg"':'')+'>'+r.nonpos+'日</td><td'+gainCls(r.daily)+'>'+fmt(r.daily)+'</td><td>'+r.nav+'</td><td><button class="pill" onclick="deleteProduct(\''+r.code+'\')">删除</button></td></tr>';
+      html+='<tr'+(globalIdx===0?' style="background:#fff7e6"':'')+'><td><a href="detail.html?share='+encodeURIComponent(r.code)+'">'+r.name+'</a><br><span class="muted">'+r.code+'</span></td><td>'+r.date.slice(5)+'</td><td'+gainCls(r.wan)+'>'+r.wan.toFixed(2)+'</td><td'+gainCls(r.avg7)+'>'+r.avg7.toFixed(2)+'</td><td'+gainCls(r.avg14)+'>'+r.avg14.toFixed(2)+'</td><td'+annCls(r.ann7)+'>'+pctTxt(r.ann7)+'</td><td'+annCls(r.ann14)+'>'+pctTxt(r.ann14)+'</td><td'+annCls(r.ann30)+'>'+pctTxt(r.ann30)+'</td><td'+gainCls(r.rise30)+'>'+(r.rise30==null?'—':r.rise30.toFixed(2)+'%')+'</td><td'+(r.zero>0?' class="gain-neg"':'')+'>'+r.zero+'</td><td'+gainCls(r.daily)+'>'+fmt(r.daily)+'</td><td>'+r.nav+'</td><td><button class="pill" onclick="deleteProduct(\''+r.code+'\')">删除</button></td></tr>';
       globalIdx++;
     });
     html+='</table></div></div>';
@@ -475,7 +475,7 @@ function renderProductDetail(share){
     +'<div'+gainCls(c.holdingAnn)+' style="font-size:18px;font-weight:800;margin-top:8px">持有年化 '+fmt(c.holdingAnn)+'%</div>'
     +'<div class="prod cols"><div><span class="muted">持有金额</span><b>'+c.amount.toLocaleString(undefined,{maximumFractionDigits:2})+'</b></div><div><span class="muted">当日盈亏</span><b'+gainCls(c.daily)+'>'+fmt(c.daily)+'</b></div><div><span class="muted">本月收益</span><b'+gainCls(c.monthly)+'>'+fmt(c.monthly)+'</b></div><div><span class="muted">持仓盈亏</span><b'+gainCls(c.holdingPnl)+'>'+fmt(c.holdingPnl)+'</b></div></div>'
     +'<div class="muted">份额 '+hold.shares.toLocaleString()+' · 买入 '+hold.purchase_date+' @ '+hold.purchase_nav+'</div>'
-    +(()=>{ const bad=nonPosDays(share); return '<div'+(bad.count>0?' class="gain-neg"':' class="muted"')+'>挂0或负收益日：'+bad.count+'日'+(bad.count?' · '+bad.list.map(r=>r.date.slice(5)+'('+wanTxt(r.wan)+')').join('、'):'')+'</div>'; })()
+    +(()=>{ const bad=zeroDays(share); return '<div'+(bad.count>0?' class="gain-neg"':' class="muted"')+'>挂0：'+bad.count+(bad.count?' · '+bad.list.map(r=>r.date.slice(5)+'('+wanTxt(r.wan)+')').join('、'):'')+'</div>'; })()
     +'<div class="detail" style="display:block"><h4>近30日</h4><table><tr><th>净值日期</th><th>当日万收</th><th>近七日日均</th><th>近14日日均</th><th>近7日年化</th><th>近14日年化</th><th>近一月年化</th><th>1月涨幅</th></tr>'
     +rows.map(r=>'<tr><td>'+r.date+'</td><td'+gainCls(r.wan)+'>'+wanTxt(r.wan)+'</td><td'+gainCls(r.avg7)+'>'+r.avg7.toFixed(2)+'</td><td'+gainCls(r.avg14)+'>'+r.avg14.toFixed(2)+'</td><td'+annCls(r.ann7)+'>'+pctTxt(r.ann7)+'</td><td'+annCls(r.ann14)+'>'+pctTxt(r.ann14)+'</td><td'+annCls(r.ann30)+'>'+pctTxt(r.ann30)+'</td><td'+gainCls(r.rise30)+'>'+(r.rise30==null?'—':r.rise30.toFixed(2)+'%')+'</td></tr>').join('')+'</table></div>';
   html+='<h4 style="margin-top:20px">买入 / 赎回 · 本产品</h4>';
