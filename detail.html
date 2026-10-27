@@ -12,21 +12,34 @@
 <nav class="nav"><a href="index.html" class="">首页</a><a href="calendar.html" class="">收益日历</a><a href="compare.html" class="">产品对比</a><a href="transactions.html" class="">交易中心</a></nav>
 
 <div class="card">
-<div class="row"><h2>产品详情</h2></div>
-<div id="prodLinks" style="margin-bottom:12px">正在加载产品…</div>
+<div class="row"><h2>产品详情</h2><span><a href="index.html">回首页</a> · <a href="transactions.html">交易中心</a></span></div>
 <div id="list"></div>
+<p class="muted">本页只显示本产品的信息，不列其他产品。持有年化 = 持仓盈亏 / 本金 × 365 / 持有天数，持仓盈亏 = 份额 ×（最新净值 - 买入净值），本金 = 份额 × 买入净值，持有天数 = 最新净值日 - 买入日，全部从买入日起算，买入日之前的净值不用。其他公式：当日万收=(当日净值/上一净值-1)×10000；近七日日均=近7个自然日内当日万收之和/7，近14日同理；近7日年化=(当日净值/7日前最近净值-1)×365/实际天数，近14日、近一月同理。成立以来年化已按你的要求去掉。净值以管理人官网为准，本页不能自动获取最新净值，未公布的日期不反推、不显示。</p>
 </div>
 <div class="card" style="margin-top:16px">
 <details open>
-<summary>新增一日净值 / 导出（只改本页显示，刷新后恢复仓库数据）</summary>
-<label>产品 <select id="pSel"></select></label>
-<label>日期 <input id="dIn" type="date" value="2026-10-27"></label>
+<summary>新增买入 / 赎回（本产品，只改本页显示，刷新后恢复仓库数据）</summary>
+<p class="muted">T+1口径：申请日即净值日，确认日默认下一个工作日（周一至周五，节假日请手动改确认日）。买入填金额，赎回填份额。申请日的净值如果在历史里有，就按该净值算份额/金额并计入本页份额；如果净值还没公布，就记为待确认，不计入份额。</p>
+<label>类型 <select id="txType"><option value="买入">买入</option><option value="赎回">赎回</option></select></label>
+<label>申请日 <input id="txApply" type="date"></label>
+<label>确认日 <input id="txConfirm" type="date"></label>
+<label id="txAmtLabel">金额 <input id="txAmt" type="number" step="0.01" placeholder="100000"></label>
+<label id="txShrLabel" style="display:none">份额 <input id="txShr" type="number" step="0.01" placeholder="10000"></label>
+<button id="txAddBtn">加入本页</button>
+<button id="txExpBtn">导出交易 JSON</button>
+<p id="txMsg" class="muted"></p>
+</details>
+</div>
+<div class="card" style="margin-top:16px">
+<details open>
+<summary>新增一日净值 / 导出（本产品，只改本页显示，刷新后恢复仓库数据）</summary>
+<label>产品 <span id="pName" class="muted"></span></label>
+<label>日期 <input id="dIn" type="date"></label>
 <label>净值 <input id="nIn" type="number" step="0.000001" placeholder="1.0190"></label>
 <button id="addBtn">加入并重算</button>
-<button id="expBtn">导出 JSON</button>
+<button id="expBtn">导出净值 JSON</button>
 <p id="addMsg" class="muted"></p>
 </details>
-<p class="muted">最重要：持有年化 = 持仓盈亏 / 本金 × 365 / 持有天数，持仓盈亏 = 份额 ×（最新净值 - 买入净值），本金 = 份额 × 买入净值，持有天数 = 最新净值日 - 买入日，全部从买入日起算，买入日之前的净值不用。其他公式：当日万收=(当日净值/上一净值-1)×10000；近七日日均=近7个自然日内当日万收之和/7，近14日同理；近7日年化=(当日净值/7日前最近净值-1)×365/实际天数，近14日、近一月同理。成立以来年化已按你的要求去掉。净值来源：中国理财网公开查询，全部数据只由这里查到的净值算出。本页不能自动获取最新净值，10-26 净值未查到时不反推、不显示。</p>
 </div>
 
 </div>
@@ -34,30 +47,63 @@
 <script>
 
 loadData().then(()=>{
-  render();
   const params=new URLSearchParams(location.search);
-  const share=params.get('share');
-  const cards=[...document.querySelectorAll('#list .card')];
-  const target=cards.find(c=>c.dataset.share===share) || cards[0];
-  if(target){
-    const d=target.querySelector('.detail'); d.style.display='block';
-    const p=DATA.products.find(n=>n.share_code===target.dataset.share);
-    if(p) draw(target.querySelector('canvas'), p.history_desc);
-    target.scrollIntoView();
-  }
-  const links=document.getElementById('prodLinks');
-  links.innerHTML=DATA.products.map(p=>'<a class="pill" href="detail.html?share='+encodeURIComponent(p.share_code)+'">'+p.ledger_name+'</a>').join(' ');
-  const sel=document.getElementById('pSel');
-  DATA.products.forEach((p,i)=>{const o=document.createElement('option');o.value=i;o.textContent=p.ledger_name;sel.appendChild(o);});
+  let share=params.get('share');
+  if(!DATA.products.find(p=>p.share_code===share)) share=DATA.products[0].share_code;
+  const hold=HOLD.products.find(p=>p.share_code===share);
+  document.getElementById('pName').textContent=hold.ledger_name+'（'+share+'）';
+  const renderOne=()=>renderProductDetail(share);
+  renderOne();
+  const applyInput=document.getElementById('txApply');
+  const confirmInput=document.getElementById('txConfirm');
+  applyInput.onchange=()=>{ if(applyInput.value) confirmInput.value=nextWorkingDay(applyInput.value); };
+  document.getElementById('txType').onchange=e=>{
+    const isBuy=e.target.value==='买入';
+    document.getElementById('txAmtLabel').style.display=isBuy?'':'none';
+    document.getElementById('txShrLabel').style.display=isBuy?'none':'';
+  };
+  document.getElementById('txAddBtn').onclick=()=>{
+    const type=document.getElementById('txType').value;
+    const apply=applyInput.value, confirm=confirmInput.value;
+    const amt=parseFloat(document.getElementById('txAmt').value);
+    const shr=parseFloat(document.getElementById('txShr').value);
+    const msg=document.getElementById('txMsg');
+    if(!apply||!confirm){ msg.textContent='请填写申请日和确认日'; return; }
+    if(type==='买入' && !(amt>0)){ msg.textContent='买入请填写金额'; return; }
+    if(type==='赎回' && !(shr>0)){ msg.textContent='赎回请填写份额'; return; }
+    const curHold=HOLD.products.find(p=>p.share_code===share);
+    if(type==='赎回' && shr>curHold.shares){ msg.textContent='赎回份额大于当前份额 '+curHold.shares.toLocaleString()+'，请改小'; return; }
+    const navEntry=histAsc(share).find(x=>x[0]===apply);
+    if(!navEntry){
+      if(type==='买入') TX.pending.push({type:'待确认', product:hold.ledger_name, distributor:hold.distributor, date:'--', shares:null, amount:amt, nav_date:apply, planned_confirm:confirm});
+      else TX.pending.push({type:'待确认', product:hold.ledger_name, distributor:hold.distributor, date:'--', shares:null, amount:0, nav_date:apply, planned_confirm:confirm, redeem_shares:shr});
+      msg.textContent='申请日 '+apply+' 的净值还没公布，已记为待确认，未计入份额。确认后请再核对净值和份额。';
+    } else {
+      const nav=navEntry[1];
+      if(type==='买入'){
+        const shares=Math.round(amt/nav*100)/100;
+        TX.transactions.push({type:'买入', product:hold.ledger_name, distributor:hold.distributor, date:confirm, shares, amount:amt, nav_date:apply});
+        curHold.shares=Math.round((curHold.shares+shares)*100)/100;
+        msg.textContent='已加入买入 '+apply+' 净值 '+nav+'，金额 '+amt.toLocaleString(undefined,{minimumFractionDigits:2})+'，份额 '+shares.toLocaleString()+'，已计入本页当前份额。';
+      } else {
+        const amount=Math.round(shr*nav*100)/100;
+        TX.transactions.push({type:'卖出', product:hold.ledger_name, distributor:hold.distributor, date:confirm, shares:shr, amount, nav_date:apply});
+        curHold.shares=Math.round((curHold.shares-shr)*100)/100;
+        msg.textContent='已加入赎回 '+apply+' 净值 '+nav+'，份额 '+shr.toLocaleString()+'，金额 '+amount.toLocaleString(undefined,{minimumFractionDigits:2})+'，已从本页当前份额扣减。';
+      }
+    }
+    TX.summary_current8={buys:TX.transactions.filter(t=>t.type==='买入').length, sells:TX.transactions.filter(t=>t.type==='卖出').length, pending:TX.pending.length};
+    renderOne();
+  };
+  document.getElementById('txExpBtn').onclick=()=>{
+    const blob=new Blob([JSON.stringify(TX,null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='transactions.json'; a.click();
+  };
   document.getElementById('addBtn').onclick=()=>{
-    const i=+sel.value, d=document.getElementById('dIn').value, n=parseFloat(document.getElementById('nIn').value);
+    const d=document.getElementById('dIn').value, n=parseFloat(document.getElementById('nIn').value);
     if(!d||isNaN(n)){document.getElementById('addMsg').textContent='请填写日期和净值';return;}
-    const p=DATA.products[i]; p.history_desc=p.history_desc.filter(x=>x[0]!==d); p.history_desc.unshift([d,n]); p.history_desc.sort((a,b)=>b[0].localeCompare(a[0]));
-    document.getElementById('addMsg').textContent='已加入 '+p.ledger_name+' '+d+' '+n+'，全部指标已由净值重算，刷新后恢复仓库数据。';
-    render();
-    const cards2=[...document.querySelectorAll('#list .card')];
-    const t2=cards2.find(c=>c.dataset.share===p.share_code);
-    if(t2){ const dd=t2.querySelector('.detail'); dd.style.display='block'; draw(t2.querySelector('canvas'), p.history_desc); }
+    const p=DATA.products.find(x=>x.share_code===share); p.history_desc=p.history_desc.filter(x=>x[0]!==d); p.history_desc.unshift([d,n]); p.history_desc.sort((a,b)=>b[0].localeCompare(a[0]));
+    document.getElementById('addMsg').textContent='已加入 '+hold.ledger_name+' '+d+' '+n+'，全部指标已由净值重算，刷新后恢复仓库数据。';
+    renderOne();
   };
   document.getElementById('expBtn').onclick=()=>{
     const blob=new Blob([JSON.stringify(DATA,null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='nav-history.json'; a.click();
