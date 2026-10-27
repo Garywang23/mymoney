@@ -5,6 +5,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 .wrap.wide{max-width:100%}
 #compareTable{display:block}
 #compareTable .split-group{min-width:0}
+.homeGrid{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start}
+.homeGrid .card{margin-top:0 !important}
+@media(max-width:1000px){.homeGrid{grid-template-columns:1fr}}
+.prod .cols.cols6{grid-template-columns:repeat(3,1fr)}
 #compareTable table th,#compareTable table td{white-space:nowrap}
 #homeDetail table td,#dayDetail table td,.detail table td{white-space:nowrap}
 .topTabs{display:flex;background:#e9e6fb;border-radius:12px;padding:4px;margin-bottom:16px}
