@@ -195,6 +195,46 @@ function latestCompleteDate(){
   if(!common || !common.size) return null;
   return [...common].sort().pop();
 }
+
+function renderTodaySummary(){
+  const wrap=document.getElementById('todaySummary'); if(!wrap) return;
+  const {cal, det}=lotCalendar();
+  const ds=latestCompleteDate(); if(!ds){ wrap.innerHTML='<p class="muted">暂无8只共有的净值日。</p>'; return; }
+  const rows=det[ds]||[];
+  const todayGain=cal[ds]||0;
+  const todayAmt=rows.reduce((a,r)=>a+r.shares*r.nav,0);
+  const wan=todayAmt?todayGain/todayAmt*10000:0;
+  const month=ds.slice(0,7);
+  const monthGain=Object.keys(cal).filter(d=>d.startsWith(month)).reduce((a,d)=>a+cal[d],0);
+  const pm=new Date(month+'-01T00:00:00'); pm.setMonth(pm.getMonth()-1);
+  const prevMonth=pm.getFullYear()+'-'+String(pm.getMonth()+1).padStart(2,'0');
+  const prevGain=Object.keys(cal).filter(d=>d.startsWith(prevMonth)).reduce((a,d)=>a+cal[d],0);
+  const prevAmt=(()=>{
+    const [py,pm]=prevMonth.split('-').map(Number);
+    const nextStr=fmtDateLocal(new Date(py, pm, 1));
+    let total=0;
+    HOLD.products.forEach(p=>{
+      const h=histAsc(p.share_code).filter(x=>x[0]<nextStr);
+      if(!h.length) return;
+      const last=h[h.length-1];
+      let sh=0;
+      (TX?TX.transactions:[]).filter(t=>t.product===p.ledger_name).forEach(t=>{ const nd=t.nav_date||t.date; if(nd<nextStr) sh+=t.type==='卖出'?-t.shares:t.shares; });
+      total+=sh*last[1];
+    });
+    return total;
+  })();
+  const monthAnn=todayAmt?monthGain/todayAmt*12*100:null;
+  const prevAnn=prevAmt?prevGain/prevAmt*12*100:null;
+  wrap.innerHTML='<div class="row"><h2>今日收益总揽</h2><span class="muted">'+ds+' 已全部更新</span></div>'
+    +'<div style="text-align:center;margin:8px 0"><b'+gainCls(todayGain)+' style="font-size:28px">'+fmt(todayGain)+' ('+fmt(wan)+')</b></div>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">'
+    +'<div style="background:#f7f7f7;padding:10px;border-radius:8px"><div class="muted">本月收益</div><b'+gainCls(monthGain)+'>'+fmt(monthGain)+'</b></div>'
+    +'<div style="background:#f7f7f7;padding:10px;border-radius:8px"><div class="muted">本月年化</div><b'+annCls(monthAnn)+'>'+pctTxt(monthAnn)+'</b></div>'
+    +'<div style="background:#f7f7f7;padding:10px;border-radius:8px"><div class="muted">上月收益</div><b'+gainCls(prevGain)+'>'+fmt(prevGain)+'</b></div>'
+    +'<div style="background:#f7f7f7;padding:10px;border-radius:8px"><div class="muted">上月年化</div><b'+annCls(prevAnn)+'>'+pctTxt(prevAnn)+'</b></div>'
+    +'</div>';
+}
+
 function renderHomeTotal(){
   const wrap=document.getElementById('homeTotal'); if(!wrap) return;
   let total=0;
