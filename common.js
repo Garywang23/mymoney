@@ -134,6 +134,10 @@ function renderCalendar(){
   }
   wrap.innerHTML=html;
 }
+let CMP_SORT={key:'wan',dir:-1};
+function sortCompare(key){ if(CMP_SORT.key===key) CMP_SORT.dir*=-1; else CMP_SORT={key,dir:key==='name'?1:-1}; renderCompare(); }
+function gainCls(v){ return v==null?'':(v>0?' class="gain-pos"':(v<0?' class="gain-neg"':'')); }
+function annCls(v){ return (v!=null&&v>2)?' class="ann-high"':''; }
 function renderCompare(){
   const wrap=document.getElementById('compareTable'); if(!DATA||!HOLD) return;
   const rows=[];
@@ -154,10 +158,19 @@ function renderCompare(){
     const c=calc(p.share_code, latest[0]);
     rows.push({name:p.ledger_name, code:p.share_code, date:latest[0], nav:latest[1], wan, avg7:m?m.avg7:0, avg14:m?m.avg14:0, ann7:m?m.ann7:null, ann14:m?m.ann14:null, ann30:m?m.ann30:null, rise7:r7?r7.pct:null, rise14:r14?r14.pct:null, daily:c.daily, shares:p.shares, amount:c.amount});
   });
-  rows.sort((a,b)=>b.wan-a.wan);
-  let html='<table><tr><th>产品</th><th>净值日期</th><th>最新净值</th><th>当日万收</th><th>7日日均</th><th>14日日均</th><th>7日年化</th><th>14日年化</th><th>1月年化</th><th>7日涨幅</th><th>14日涨幅</th><th>当日收益</th><th>持有份额</th><th>持有金额</th></tr>';
+  const k=CMP_SORT.key, d=CMP_SORT.dir;
+  rows.sort((a,b)=>{
+    const va=a[k], vb=b[k];
+    if(va==null&&vb==null) return 0;
+    if(va==null) return 1;
+    if(vb==null) return -1;
+    if(typeof va==='string') return d*va.localeCompare(vb);
+    return d*(va-vb);
+  });
+  const cols=[['name','产品'],['date','净值日期'],['wan','当日万收'],['avg7','7日日均'],['avg14','14日日均'],['ann7','7日年化'],['ann14','14日年化'],['ann30','1月年化'],['rise7','7日涨幅'],['rise14','14日涨幅'],['daily','当日收益'],['nav','最新净值'],['shares','持有份额'],['amount','持有金额']];
+  let html='<table><tr>'+cols.map(([key,label])=>'<th onclick="sortCompare(\''+key+'\')">'+label+(CMP_SORT.key===key?(CMP_SORT.dir===1?' ▲':' ▼'):'')+'</th>').join('')+'</tr>';
   rows.forEach((r,idx)=>{
-    html+='<tr'+(idx===0?' style="background:#fff7e6"':'')+'><td><a href="detail.html?share='+encodeURIComponent(r.code)+'">'+r.name+'</a><br><span class="muted">'+r.code+'</span></td><td>'+r.date.slice(5)+'</td><td>'+r.nav+'</td><td>'+r.wan.toFixed(2)+'</td><td>'+r.avg7.toFixed(2)+'</td><td>'+r.avg14.toFixed(2)+'</td><td>'+pctTxt(r.ann7)+'</td><td>'+pctTxt(r.ann14)+'</td><td>'+pctTxt(r.ann30)+'</td><td>'+(r.rise7==null?'—':r.rise7.toFixed(2)+'%')+'</td><td>'+(r.rise14==null?'—':r.rise14.toFixed(2)+'%')+'</td><td>'+fmt(r.daily)+'</td><td>'+r.shares.toLocaleString()+'</td><td>'+r.amount.toLocaleString(undefined,{maximumFractionDigits:2})+'</td></tr>';
+    html+='<tr'+(idx===0?' style="background:#fff7e6"':'')+'><td><a href="detail.html?share='+encodeURIComponent(r.code)+'">'+r.name+'</a><br><span class="muted">'+r.code+'</span></td><td>'+r.date.slice(5)+'</td><td'+gainCls(r.wan)+'>'+r.wan.toFixed(2)+'</td><td'+gainCls(r.avg7)+'>'+r.avg7.toFixed(2)+'</td><td'+gainCls(r.avg14)+'>'+r.avg14.toFixed(2)+'</td><td'+annCls(r.ann7)+'>'+pctTxt(r.ann7)+'</td><td'+annCls(r.ann14)+'>'+pctTxt(r.ann14)+'</td><td'+annCls(r.ann30)+'>'+pctTxt(r.ann30)+'</td><td'+gainCls(r.rise7)+'>'+(r.rise7==null?'—':r.rise7.toFixed(2)+'%')+'</td><td'+gainCls(r.rise14)+'>'+(r.rise14==null?'—':r.rise14.toFixed(2)+'%')+'</td><td'+gainCls(r.daily)+'>'+fmt(r.daily)+'</td><td>'+r.nav+'</td><td>'+r.shares.toLocaleString()+'</td><td>'+r.amount.toLocaleString(undefined,{maximumFractionDigits:2})+'</td></tr>';
   });
   html+='</table>';
   wrap.innerHTML=html;
