@@ -274,7 +274,7 @@ let CMP_SORT={key:'wan',dir:-1};
 function sortCompare(key){ if(CMP_SORT.key===key) CMP_SORT.dir*=-1; else CMP_SORT={key,dir:key==='name'?1:-1}; renderCompare(); }
 function gainCls(v){ return v==null?'':(v>0?' class="gain-pos"':' class="gain-neg"'); }
 function annCls(v){ if(v==null) return ''; if(v<0) return ' class="gain-neg"'; return v>2?' class="ann-high"':''; }
-function zeroDays(share){ const rows=metricsFor(share); if(!rows.length) return {count:0, dates:[], list:[]}; const month=rows[0].date.slice(0,7); const bad=rows.filter(r=>r.wan===0 && r.date.startsWith(month)); return {count:bad.length, dates:bad.map(r=>r.date), list:bad}; }
+function zeroDays(share){ const rows=metricsFor(share); if(!rows.length) return {count:0, dates:[], list:[]}; const month=rows[0].date.slice(0,7); const bad=rows.filter(r=>r.wan!=null && r.wan<=0 && r.date.startsWith(month)); return {count:bad.length, dates:bad.map(r=>r.date), list:bad}; }
 function renderCompare(){
   const wrap=document.getElementById('compareTable'); if(!DATA||!HOLD) return;
   if(CMP_SORT.key==='rise7'||CMP_SORT.key==='rise14') CMP_SORT={key:'rise30',dir:-1};
@@ -286,7 +286,7 @@ function renderCompare(){
     const latest=h[h.length-1], prev=h.length>1?h[h.length-2]:null;
     const allM=metricsFor(p.share_code);
     const m=allM.find(r=>r.date===latest[0]) || allM[0];
-    const month=allM.length?allM[0].date.slice(0,7):''; const zero=allM.filter(r=>r.wan===0 && r.date.startsWith(month)).length;
+    const month=allM.length?allM[0].date.slice(0,7):''; const zero=allM.filter(r=>r.wan!=null && r.wan<=0 && r.date.startsWith(month)).length;
     const wan=prev?(latest[1]/prev[1]-1)*10000:0;
     const rise=win=>{
       const td=parseD(latest[0]); const cutoff=new Date(td); cutoff.setDate(cutoff.getDate()-win);
