@@ -12,10 +12,6 @@
 <nav class="nav"><a href="index.html" class="">首页</a><a href="compare.html" class="">备选产品</a><a href="transactions.html" class="">交易记录</a></nav>
 
 <div class="card">
-<div class="row"><h2>产品详情</h2><span><a href="index.html">回首页</a> · <a href="transactions.html">交易记录</a></span></div>
-<div id="list"></div>
-</div>
-<div class="card" style="margin-top:16px">
 <details open>
 <summary>新增买入 / 赎回（本产品，本机保存，首页总额和交易记录页同浏览器联动）</summary>
 <label>类型 <select id="txType"><option value="买入">买入</option><option value="赎回">赎回</option></select></label>
@@ -28,6 +24,10 @@
 <button id="txClearBtn">清除本机保存</button>
 <p id="txMsg" class="muted"></p>
 </details>
+</div>
+<div class="card" style="margin-top:16px">
+<div class="row"><h2>产品详情</h2><span><a href="index.html">回首页</a> · <a href="transactions.html">交易记录</a></span></div>
+<div id="list"></div>
 </div>
 <div class="card" style="margin-top:16px">
 <details open>
