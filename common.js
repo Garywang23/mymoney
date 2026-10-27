@@ -354,24 +354,16 @@ function metricsFor(share){
 }
 function wanTxt(n){ return n==null?'—':n.toFixed(2); }
 function pctTxt(n){ return n==null?'—':fmt(n)+'%'; }
-function draw(canvas, hist){
-  const ctx=canvas.getContext('2d'); const W=canvas.width=canvas.offsetWidth*2, H=canvas.height=220;
-  ctx.clearRect(0,0,W,H); const vals=hist.slice().sort((a,b)=>a[0].localeCompare(b[0])).map(x=>x[1]);
-  const mn=Math.min(...vals), mx=Math.max(...vals), pad=16;
-  ctx.strokeStyle='#5b5bd6'; ctx.lineWidth=3; ctx.beginPath();
-  vals.forEach((v,i)=>{const x=pad+i*(W-2*pad)/Math.max(1,vals.length-1); const y=H-pad-(v-mn)/Math.max(0.000001,mx-mn)*(H-2*pad); i?ctx.lineTo(x,y):ctx.moveTo(x,y);});
-  ctx.stroke();
-}
 function render(){
   const wrap=document.getElementById('list'); wrap.innerHTML='';
   DATA.products.forEach(p=>{
     const hist=p.history_desc, latest=hist.slice().sort((a,b)=>b[0].localeCompare(a[0]))[0];
     const rows=metricsFor(p.share_code);
     const el=document.createElement('div'); el.className='card'; el.dataset.share=p.share_code;
-    el.innerHTML='<h3 style="margin:0">'+p.ledger_name+' · '+latest[1]+'</h3><div class="muted">'+p.manager+' · '+p.registration_code+' / '+p.share_code+'</div>'
-      +'<div class="detail"><canvas></canvas><h4>近30自然日数据详情</h4><table><tr><th>净值日期</th><th>当日万收</th><th>近七日日均</th><th>近14日日均</th><th>近7日年化</th><th>近14日年化</th><th>近一月年化</th></tr>'
+    el.innerHTML='<h3 style="margin:0">'+p.ledger_name+' · '+latest[1]+'</h3><div class="muted">'+p.share_code+'</div>'
+      +'<div class="detail"><h4>近30日</h4><table><tr><th>净值日期</th><th>当日万收</th><th>近七日日均</th><th>近14日日均</th><th>近7日年化</th><th>近14日年化</th><th>近一月年化</th></tr>'
       +rows.map(r=>'<tr><td>'+r.date+'</td><td>'+wanTxt(r.wan)+'</td><td>'+r.avg7.toFixed(2)+'</td><td>'+r.avg14.toFixed(2)+'</td><td>'+pctTxt(r.ann7)+'</td><td>'+pctTxt(r.ann14)+'</td><td>'+pctTxt(r.ann30)+'</td></tr>').join('')+'</table></div>';
-    el.querySelector('h3').onclick=()=>{const d=el.querySelector('.detail'); d.style.display=d.style.display==='block'?'none':'block'; if(d.style.display==='block') draw(el.querySelector('canvas'), hist);};
+    el.querySelector('h3').onclick=()=>{const d=el.querySelector('.detail'); d.style.display=d.style.display==='block'?'none':'block';};
     wrap.appendChild(el);
   });
 }
@@ -421,18 +413,16 @@ function renderProductDetail(share){
     return '<tr><td style="color:'+(isBuy?'#e60012':'#0a7d4a')+'">'+(isBuy?'买入':'赎回')+'</td><td>'+t.amount.toLocaleString(undefined,{minimumFractionDigits:2})+'</td><td>'+t.shares.toLocaleString()+'</td><td>'+navTxt+'</td><td>'+t.nav_date+'（申请日）</td><td>'+t.date+'（确认日）</td><td>'+redTxt+'</td></tr>';
   };
   let html='<h3 style="margin:0">'+hold.ledger_name+' · '+c.cur[1]+'（'+c.cur[0]+'）</h3>'
-    +'<div class="muted">'+hold.distributor+' · '+hold.manager+' · '+p.registration_code+' / '+p.share_code+'</div>'
+    +'<div class="muted">'+hold.distributor+' · '+p.share_code+'</div>'
     +'<div style="color:#e60012;font-size:18px;font-weight:800;margin-top:8px">持有年化 '+fmt(c.holdingAnn)+'%</div>'
-    +'<div class="prod cols"><div><span class="muted">持有金额</span><b>'+c.amount.toLocaleString(undefined,{maximumFractionDigits:2})+'</b></div><div><span class="muted">当日盈亏</span><b>'+fmt(c.daily)+'</b></div><div><span class="muted">本月收益</span><b>'+fmt(c.monthly)+'</b></div><div><span class="muted">持仓盈亏</span><b>'+fmt(c.holdingPnl)+'</b></div><div><span class="muted">持有年化</span><b style="color:#e60012">'+fmt(c.holdingAnn)+'%</b></div></div>'
-    +'<div class="muted">当前份额 '+hold.shares.toLocaleString()+' · 可赎份额 '+hold.shares.toLocaleString()+' · 买入 '+hold.purchase_date+' @ '+hold.purchase_nav
-    +(red?(' · 最短持有 '+red.days+'天 · 最早一笔可赎回 '+red.earliest+'，最新一笔可赎回 '+red.latest):'')+'</div>'
-    +'<div class="detail" style="display:block"><canvas id="prodChart"></canvas><h4>近30自然日数据详情</h4><table><tr><th>净值日期</th><th>当日万收</th><th>近七日日均</th><th>近14日日均</th><th>近7日年化</th><th>近14日年化</th><th>近一月年化</th></tr>'
+    +'<div class="prod cols"><div><span class="muted">持有金额</span><b>'+c.amount.toLocaleString(undefined,{maximumFractionDigits:2})+'</b></div><div><span class="muted">当日盈亏</span><b>'+fmt(c.daily)+'</b></div><div><span class="muted">本月收益</span><b>'+fmt(c.monthly)+'</b></div><div><span class="muted">持仓盈亏</span><b>'+fmt(c.holdingPnl)+'</b></div></div>'
+    +'<div class="muted">份额 '+hold.shares.toLocaleString()+' · 买入 '+hold.purchase_date+' @ '+hold.purchase_nav+'</div>'
+    +'<div class="detail" style="display:block"><h4>近30日</h4><table><tr><th>净值日期</th><th>当日万收</th><th>近七日日均</th><th>近14日日均</th><th>近7日年化</th><th>近14日年化</th><th>近一月年化</th></tr>'
     +rows.map(r=>'<tr><td>'+r.date+'</td><td>'+wanTxt(r.wan)+'</td><td>'+r.avg7.toFixed(2)+'</td><td>'+r.avg14.toFixed(2)+'</td><td>'+pctTxt(r.ann7)+'</td><td>'+pctTxt(r.ann14)+'</td><td>'+pctTxt(r.ann30)+'</td></tr>').join('')+'</table></div>';
   html+='<h4 style="margin-top:20px">买入 / 赎回 · 本产品</h4>';
   html+='<h5>买入（'+buys.length+'笔）</h5>'+(buys.length?'<table><tr><th>类型</th><th>金额</th><th>份额</th><th>净值</th><th>净值日</th><th>确认日</th><th>预估最早可赎回日</th></tr>'+buys.map(txRow).join('')+'</table>':'<p class="muted">本产品暂无买入记录。</p>');
   html+='<h5>赎回（'+sells.length+'笔）</h5>'+(sells.length?'<table><tr><th>类型</th><th>金额</th><th>份额</th><th>净值</th><th>净值日</th><th>确认日</th><th>预估最早可赎回日</th></tr>'+sells.map(txRow).join('')+'</table>':'<p class="muted">本产品暂无赎回记录。</p>');
   html+='<h5>待确认（'+pending.length+'笔）</h5>'+(pending.length?pending.map(t=>'<div class="row" style="border-bottom:1px solid #eee;padding:8px 0"><span>待确认 · '+(t.redeem_shares?'赎回份额 '+t.redeem_shares.toLocaleString()+' · 金额待净值公布后算':'金额 '+t.amount.toLocaleString(undefined,{minimumFractionDigits:2}))+' · 份额 -- · 确认日 '+(t.planned_confirm||'--')+(t.nav_date?' · 净值日 '+t.nav_date:'')+'</span></div>').join(''):'<p class="muted">本产品暂无待确认交易。</p>');
   wrap.innerHTML=html;
-  const canvas=document.getElementById('prodChart'); if(canvas) draw(canvas, p.history_desc);
   return {product:p, hold, calc:c, buys, sells, pending, redeemable:red};
 }
