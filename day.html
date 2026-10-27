@@ -29,13 +29,19 @@ loadData().then(()=>{
   if(!rows){ box.innerHTML='<p class="muted">这一天目前8只没有净值收益。</p>'; return; }
   const oldv=OLD_CAL[ds];
   let totAmt=rows.reduce((a,r)=>a+r.shares*r.nav,0);
-  let h='<h4 style="margin:12px 0 6px">'+ds+' · 当前8只合计 '+fmt(cal[ds])+' · 当日持有金额合计 '+totAmt.toLocaleString(undefined,{maximumFractionDigits:2})+(oldv!=null?' · 目标页日历当日合计 '+fmt(oldv)+'，差额 '+fmt(oldv-cal[ds])+'（已清仓当日收益 + 诚享其他日期四舍五入误差）':'')+'</h4><table><tr><th>产品</th><th>当日份额</th><th>上一净值日</th><th>上一净值</th><th>当日净值</th><th>当日金额</th><th>当日收益</th></tr>';
-  rows.forEach(r=>{
-    const gainTxt=(r.name.indexOf('诚享')>=0 && r.prev===r.nav) ? '精度不足' : fmt(r.gain);
-    h+='<tr><td>'+r.name+'</td><td>'+r.shares.toLocaleString()+'</td><td>'+r.prevDate+'</td><td>'+r.prev+'</td><td>'+r.nav+'</td><td>'+(r.shares*r.nav).toLocaleString(undefined,{maximumFractionDigits:2})+'</td><td>'+gainTxt+'</td></tr>';
+  let h='<h4 style="margin:12px 0 6px">'+ds+' · 当前8只合计 '+fmt(cal[ds])+' · 当日持有金额合计 '+totAmt.toLocaleString(undefined,{maximumFractionDigits:2})+(oldv!=null?' · 目标页日历当日合计 '+fmt(oldv)+'，差额 '+fmt(oldv-cal[ds])+'（已清仓当日收益 + 诚享其他日期四舍五入误差，诚享现已用北银官网精确数）':'')+'</h4>';
+  ['网商银行','微众稳健'].forEach(g=>{
+    const gr=rows.filter(r=>r.distributor===g);
+    if(!gr.length) return;
+    const gGain=gr.reduce((a,r)=>a+r.gain,0); const gAmt=gr.reduce((a,r)=>a+r.shares*r.nav,0); const gWan=gAmt?gGain/gAmt*10000:0;
+    h+='<div class="groupHead"><span>'+g+'('+gr.length+')</span><span style="color:#e60012">'+fmt(gGain)+' 万收('+fmt(gWan)+')</span></div>';
+    h+='<table><tr><th>产品</th><th>当日份额</th><th>上一净值日</th><th>上一净值</th><th>当日净值</th><th>当日金额</th><th>当日收益</th></tr>';
+    gr.forEach(r=>{
+      h+='<tr><td>'+r.name+'</td><td>'+r.shares.toLocaleString()+'</td><td>'+r.prevDate+'</td><td>'+r.prev+'</td><td>'+r.nav+'</td><td>'+(r.shares*r.nav).toLocaleString(undefined,{maximumFractionDigits:2})+'</td><td>'+fmt(r.gain)+'</td></tr>';
+    });
+    h+='</table>';
   });
-  h+='</table><p class="muted">公式：当日收益 = 当日份额 ×（当日净值 - 上一净值）。当日份额按交易净值日算：净值日在当日之前的买入计入，卖出在净值日之后的才扣减。点产品名进30日详细图请回首页产品对比，或直接打开 detail.html?share=子份额代码。</p>';
-  if(rows.some(r=>r.name.indexOf('诚享')>=0 && r.prev===r.nav)){ h+='<p class="muted">诚享注意：上一净值与当日净值在中国理财网都显示4位且相同，不代表实际相同，4位算出的0是错的。22/23日已换成北银官网精确数，其他日期仍为4位，正在逐日核对。</p>'; }
+  h+='<p class="muted">公式：当日收益 = 当日份额 ×（当日净值 - 上一净值）。当日份额按交易净值日算：净值日在当日之前的买入计入，卖出在净值日之后的才扣减。净值以管理人官网为准，未公布的日期不显示、不反推。点产品名进30日详细图请去产品对比页，或直接打开 detail.html?share=子份额代码。</p>';
   box.innerHTML=h;
 });
 

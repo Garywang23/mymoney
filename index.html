@@ -12,20 +12,22 @@
 <nav class="nav"><a href="index.html" class="on">首页</a><a href="calendar.html" class="">收益日历</a><a href="compare.html" class="">产品对比</a><a href="transactions.html" class="">交易中心</a></nav>
 
 <div class="card">
-<div class="row"><h2>收益日历</h2><span class="muted">2026年10月 · 有收益的日期可点，点进去是每日详细</span></div>
-<div class="cal" id="calendar"></div>
-<p class="muted">只算目前8只。目标页日历合计含已清仓产品，所以本页合计会比目标页小，差额在每日详细页里列出来了。最新净值日 2026-10-23，10-26 净值未全部公布，不反推、不显示。</p>
+<div id="homeTotal">正在加载…</div>
 </div>
 <div class="card" style="margin-top:16px">
-<div class="row"><h2>产品对比</h2><span class="muted">点表头可排序，默认按当日万收从高到低 · 点产品名进30日详细图 · 正收益红色，负收益绿色，年化大于2%红色</span></div>
-<div id="compareTable" style="overflow-x:auto">正在加载…</div>
-<p class="muted">最新净值日均为 2026-10-23。只显示能由净值算出来的：当日万收、7/14日日均、7/14日年化、1月年化、7/14日涨幅、当日收益、份额、金额。成立以来年化、3月年化需要成立日/90日净值，30日净值里算不出来，不显示。诚享22/23日已用北银官网精确净值，其他日期仍为中国理财网4位数。</p>
+<div class="row"><h2>收益日历</h2><span class="muted">有收益的日期可点，点进去是每日详细</span></div>
+<div id="calControls" style="margin:8px 0"></div>
+<div class="cal" id="calendar"></div>
+<p class="muted">只算目前8只。9月数据也有，从9月开始可选。目标页日历合计含已清仓产品，所以本页合计会比目标页小，差额在每日详细页里列出来了。最新净值：诚享、财富牛、灵动N到2026-10-26，其他5只到2026-10-23，未公布的日期不反推、不显示。</p>
+</div>
+<div class="card" style="margin-top:16px">
+<div id="homeDetail">正在加载…</div>
 </div>
 
 </div>
 <script src="common.js"></script>
 <script>
-loadData().then(()=>{renderCalendar(); renderCompare();});
+loadData().then(()=>{renderHomeTotal(); renderCalendar(); renderHomeDetail();});
 </script>
 </body>
 </html>
