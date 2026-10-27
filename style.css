@@ -1,7 +1,13 @@
 
 *{box-sizing:border-box}
 body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;margin:0;background:#7a6df0;color:#222}
-.wrap{max-width:1080px;margin:0 auto;padding:18px 14px 28px}
+.wrap{max-width:1280px;margin:0 auto;padding:18px 14px 28px}
+.wrap.wide{max-width:100%}
+#compareTable{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start}
+#compareTable .split-group{min-width:0}
+@media(max-width:900px){#compareTable{display:block}}
+#compareTable table th,#compareTable table td{white-space:nowrap}
+#homeDetail table td,#dayDetail table td,.detail table td{white-space:nowrap}
 .topTabs{display:flex;background:#e9e6fb;border-radius:12px;padding:4px;margin-bottom:16px}
 .topTabs button{flex:1;border:0;background:transparent;padding:10px;border-radius:9px;font-size:15px;cursor:pointer;color:#555}
 .topTabs button.on{background:#fff;font-weight:700;color:#222;box-shadow:0 1px 4px rgba(0,0,0,.12)}
