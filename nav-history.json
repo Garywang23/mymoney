@@ -1,6 +1,6 @@
 {
   "latest_nav_date": "2026-10-26",
-  "note": "净值全部改以管理人官网为准，不再用中国理财网。已换：诚享（北银官网6位精确，含2026-09-14/09-23，最新2026-10-26）、财富牛（南银官网6位，最新2026-10-26）。待换：聚宝盈150T/270Q（上银官网）、宁银晶耀/宁欣（宁银官网）、匠心灵动N/G（农银官网），文件里这6只旧值仍为中国理财网来源，待官网结果到后逐只替换，今晚每日任务不再用中国理财网补。",
+  "note": "净值全部改以管理人官网为准，不再用中国理财网。已换：诚享（北银官网，最新2026-10-26）、财富牛（南银官网，最新2026-10-26）、匠心灵动N（农银官网，最新2026-10-26）、匠心灵动G（农银官网，最新2026-10-23，10-26未公布未补）。待换：聚宝盈150T/270Q（上银官网）、宁银晶耀/宁欣（宁银官网），文件里这4只旧值仍为中国理财网来源，待官网结果到后逐只替换，今晚每日任务不再用中国理财网补。",
   "products": [
     {
       "history_desc": [
@@ -421,6 +421,10 @@
     {
       "history_desc": [
         [
+          "2026-10-26",
+          1.015544
+        ],
+        [
           "2026-10-23",
           1.01537
         ],
@@ -552,7 +556,8 @@
       },
       "platform_total_rows": 129,
       "registration_code": "Z7001126000218",
-      "share_code": "NYJXLD1409N"
+      "share_code": "NYJXLD1409N",
+      "official_source": "农银理财官网净值披露 https://www.abcwealth.com.cn/#/disclosure/netDisclosure/NetDetail?idProduct=NYJXLD1409N ，单位净值6位小数，2026-10-26 1.015544（此前反推值现经官网证实）"
     },
     {
       "history_desc": [
@@ -971,7 +976,8 @@
       },
       "platform_total_rows": 82,
       "registration_code": "Z7001126000218",
-      "share_code": "NYJXLD1409G"
+      "share_code": "NYJXLD1409G",
+      "official_source": "农银理财官网净值披露 https://www.abcwealth.com.cn/#/disclosure/netDisclosure/NetDetail?idProduct=NYJXLD1409G ，单位净值6位小数，最新2026-10-23，2026-10-26在官网未公布，未补"
     },
     {
       "history_desc": [
