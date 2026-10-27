@@ -57,7 +57,7 @@ a{color:#2563eb}
 .cal .cell a{text-decoration:none;color:inherit;display:block}
 .cal .cell a:hover{text-decoration:underline}
 .cal .cell.has a{color:#222}
-.detail,#dayDetail{overflow-x:auto}
+.detail,#dayDetail,#homeDetail{overflow-x:auto}
 @media(max-width:760px){
 .wrap{padding:12px 10px 20px}
 .card{padding:14px 12px}

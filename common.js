@@ -211,12 +211,13 @@ function renderHomeDetail(){
     if(!gr.length) return;
     const gGain=gr.reduce((a,r)=>a+r.gain,0); const gAmt=gr.reduce((a,r)=>a+r.shares*r.nav,0); const gWan=gAmt?gGain/gAmt*10000:0;
     html+='<div class="groupHead"><span>'+g+'('+gr.length+')</span><span'+gainCls(gGain)+'>'+fmt(gGain)+' 万收('+fmt(gWan)+')</span></div>';
+    html+='<table><tr><th>产品</th><th>持有份额</th><th>持有金额</th><th>当日盈亏</th><th>本月收益</th><th>持仓盈亏</th><th>持有年化</th></tr>';
     gr.forEach(r=>{
       const hold=HOLD.products.find(p=>p.ledger_name===r.name); const c=calc(hold.share_code, ds);
       const wan=(r.shares*r.nav)?r.gain/(r.shares*r.nav)*10000:0;
-      html+='<div class="prod" style="cursor:default"><div class="row"><b><a href="detail.html?share='+encodeURIComponent(hold.share_code)+'">'+r.name+'</a> <span class="muted">('+hold.share_code+')</span></b><span><span class="muted">'+ds.slice(5)+'</span> <span'+gainCls(wan)+'>('+wan.toFixed(2)+')</span></span></div>'
-        +'<div class="prod cols cols6"><div><span class="muted">持有份额</span><b>'+r.shares.toLocaleString()+'</b></div><div><span class="muted">持有金额</span><b>'+(r.shares*r.nav).toLocaleString(undefined,{maximumFractionDigits:2})+'</b></div><div><span class="muted">当日盈亏</span><b'+gainCls(r.gain)+'>'+fmt(r.gain)+'</b></div><div><span class="muted">本月收益</span><b'+gainCls(c.monthly)+'>'+fmt(c.monthly)+'</b></div><div><span class="muted">持仓盈亏</span><b'+gainCls(c.holdingPnl)+'>'+fmt(c.holdingPnl)+'</b></div><div><span class="muted">持有年化</span><b'+gainCls(c.holdingAnn)+'>'+fmt(c.holdingAnn)+'%</b></div></div></div>';
+      html+='<tr><td><a href="detail.html?share='+encodeURIComponent(hold.share_code)+'">'+r.name+'</a> <span'+gainCls(wan)+'>('+wan.toFixed(2)+')</span></td><td>'+r.shares.toLocaleString()+'</td><td>'+(r.shares*r.nav).toLocaleString(undefined,{maximumFractionDigits:2})+'</td><td'+gainCls(r.gain)+'>'+fmt(r.gain)+'</td><td'+gainCls(c.monthly)+'>'+fmt(c.monthly)+'</td><td'+gainCls(c.holdingPnl)+'>'+fmt(c.holdingPnl)+'</td><td'+gainCls(c.holdingAnn)+'>'+fmt(c.holdingAnn)+'%</td></tr>';
     });
+    html+='</table>';
   });
   wrap.innerHTML=html;
 }
