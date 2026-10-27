@@ -210,12 +210,12 @@ function renderHomeDetail(){
     const gr=rows.filter(r=>r.distributor===g);
     if(!gr.length) return;
     const gGain=gr.reduce((a,r)=>a+r.gain,0); const gAmt=gr.reduce((a,r)=>a+r.shares*r.nav,0); const gWan=gAmt?gGain/gAmt*10000:0;
-    html+='<div class="groupHead"><span>'+g+'('+gr.length+')</span><span style="color:#e60012">'+fmt(gGain)+' 万收('+fmt(gWan)+')</span></div>';
+    html+='<div class="groupHead"><span>'+g+'('+gr.length+')</span><span'+gainCls(gGain)+'>'+fmt(gGain)+' 万收('+fmt(gWan)+')</span></div>';
     html+='<table><tr><th>产品</th><th>持有金额</th><th>当日盈亏</th><th>本月收益</th><th>持仓盈亏</th><th>持有年化</th></tr>';
     gr.forEach(r=>{
       const hold=HOLD.products.find(p=>p.ledger_name===r.name); const c=calc(hold.share_code, ds);
       const wan=(r.shares*r.nav)?r.gain/(r.shares*r.nav)*10000:0;
-      html+='<tr><td><a href="detail.html?share='+encodeURIComponent(hold.share_code)+'">'+r.name+'</a> <span class="muted">('+wan.toFixed(2)+')</span></td><td>'+(r.shares*r.nav).toLocaleString(undefined,{maximumFractionDigits:2})+'</td><td'+gainCls(r.gain)+'>'+fmt(r.gain)+'</td><td'+gainCls(c.monthly)+'>'+fmt(c.monthly)+'</td><td'+gainCls(c.holdingPnl)+'>'+fmt(c.holdingPnl)+'</td><td>'+fmt(c.holdingAnn)+'%</td></tr>';
+      html+='<tr><td><a href="detail.html?share='+encodeURIComponent(hold.share_code)+'">'+r.name+'</a> <span'+gainCls(wan)+'>('+wan.toFixed(2)+')</span></td><td>'+(r.shares*r.nav).toLocaleString(undefined,{maximumFractionDigits:2})+'</td><td'+gainCls(r.gain)+'>'+fmt(r.gain)+'</td><td'+gainCls(c.monthly)+'>'+fmt(c.monthly)+'</td><td'+gainCls(c.holdingPnl)+'>'+fmt(c.holdingPnl)+'</td><td'+gainCls(c.holdingAnn)+'>'+fmt(c.holdingAnn)+'%</td></tr>';
     });
     html+='</table>';
   });
@@ -228,7 +228,7 @@ function renderCalendar(){
   if(!CAL_MONTH || !months.includes(CAL_MONTH)) CAL_MONTH=months[months.length-1];
   const ctrl=document.getElementById('calControls');
   if(ctrl){
-    ctrl.innerHTML='<div class="row" style="flex-wrap:wrap;gap:8px"><span>'+['day','week','month'].map(v=>'<button class="pill '+(CAL_VIEW===v?'on':'')+'" onclick="setCalView(\''+v+'\')">'+(v==='day'?'日':v==='week'?'周':'月')+'</button>').join(' ')+'</span><span><select onchange="setCalMonth(this.value)">'+months.map(m=>'<option value="'+m+'"'+(m===CAL_MONTH?' selected':'')+'>'+m+'</option>').join('')+'</select><span class="muted"> '+CAL_MONTH+'合计 '+fmt(monthTotal(cal,CAL_MONTH))+'</span></span></div>';
+    ctrl.innerHTML='<div class="row" style="flex-wrap:wrap;gap:8px"><span>'+['day','week','month'].map(v=>'<button class="pill '+(CAL_VIEW===v?'on':'')+'" onclick="setCalView(\''+v+'\')">'+(v==='day'?'日':v==='week'?'周':'月')+'</button>').join(' ')+'</span><span><select onchange="setCalMonth(this.value)">'+months.map(m=>'<option value="'+m+'"'+(m===CAL_MONTH?' selected':'')+'>'+m+'</option>').join('')+'</select><span'+gainCls(monthTotal(cal,CAL_MONTH))+'> '+CAL_MONTH+'合计 '+fmt(monthTotal(cal,CAL_MONTH))+'</span></span></div>';
   }
   if(CAL_VIEW==='week'){
     wrap.style.display='block';
@@ -261,7 +261,7 @@ function renderCalendar(){
   for(let d=1;d<=daysInMonth;d++){
     const ds=CAL_MONTH+'-'+String(d).padStart(2,'0'); const v=cal[ds];
     if(v!=null){
-      html+='<div class="cell has"><a href="day.html?date='+ds+'">'+d+'<div class="v">'+fmt(v)+'</div></a></div>';
+      html+='<div class="cell has"><a href="day.html?date='+ds+'">'+d+'<div class="v" style="color:'+(v>0?'#e60012':'#0a7d4a')+'">'+fmt(v)+'</div></a></div>';
     } else {
       html+='<div class="cell">'+d+'</div>';
     }
@@ -270,8 +270,9 @@ function renderCalendar(){
 }
 let CMP_SORT={key:'wan',dir:-1};
 function sortCompare(key){ if(CMP_SORT.key===key) CMP_SORT.dir*=-1; else CMP_SORT={key,dir:key==='name'?1:-1}; renderCompare(); }
-function gainCls(v){ return v==null?'':(v>0?' class="gain-pos"':(v<0?' class="gain-neg"':'')); }
-function annCls(v){ return (v!=null&&v>2)?' class="ann-high"':''; }
+function gainCls(v){ return v==null?'':(v>0?' class="gain-pos"':' class="gain-neg"'); }
+function annCls(v){ if(v==null) return ''; if(v<0) return ' class="gain-neg"'; return v>2?' class="ann-high"':''; }
+function nonPosDays(share){ const rows=metricsFor(share); const bad=rows.filter(r=>r.wan!=null&&r.wan<=0); return {count:bad.length, dates:bad.map(r=>r.date), list:bad}; }
 function renderCompare(){
   const wrap=document.getElementById('compareTable'); if(!DATA||!HOLD) return;
   if(CMP_SORT.key==='rise7'||CMP_SORT.key==='rise14') CMP_SORT={key:'rise30',dir:-1};
@@ -280,7 +281,9 @@ function renderCompare(){
   HOLD.products.forEach(p=>{
     const h=histAsc(p.share_code); if(!h.length) return;
     const latest=h[h.length-1], prev=h.length>1?h[h.length-2]:null;
-    const m=metricsFor(p.share_code).find(r=>r.date===latest[0]) || metricsFor(p.share_code)[0];
+    const allM=metricsFor(p.share_code);
+    const m=allM.find(r=>r.date===latest[0]) || allM[0];
+    const nonpos=allM.filter(r=>r.wan!=null&&r.wan<=0).length;
     const wan=prev?(latest[1]/prev[1]-1)*10000:0;
     const rise=win=>{
       const td=parseD(latest[0]); const cutoff=new Date(td); cutoff.setDate(cutoff.getDate()-win);
@@ -292,7 +295,7 @@ function renderCompare(){
     };
     const r30=rise(30);
     const c=calc(p.share_code, latest[0]); if(!c) return;
-    rows.push({name:p.ledger_name, code:p.share_code, date:latest[0], nav:latest[1], wan, avg7:m?m.avg7:0, avg14:m?m.avg14:0, ann7:m?m.ann7:null, ann14:m?m.ann14:null, ann30:m?m.ann30:null, rise30:r30?r30.pct:null, daily:c.daily, shares:p.shares, amount:c.amount});
+    rows.push({name:p.ledger_name, code:p.share_code, date:latest[0], nav:latest[1], wan, avg7:m?m.avg7:0, avg14:m?m.avg14:0, ann7:m?m.ann7:null, ann14:m?m.ann14:null, ann30:m?m.ann30:null, rise30:r30?r30.pct:null, nonpos, daily:c.daily, shares:p.shares, amount:c.amount});
   });
   const k=CMP_SORT.key, d=CMP_SORT.dir;
   rows.sort((a,b)=>{
@@ -303,10 +306,10 @@ function renderCompare(){
     if(typeof va==='string') return d*va.localeCompare(vb);
     return d*(va-vb);
   });
-  const cols=[['name','产品'],['date','净值日期'],['wan','当日万收'],['avg7','7日日均'],['avg14','14日日均'],['ann7','7日年化'],['ann14','14日年化'],['ann30','1月年化'],['rise30','1月涨幅'],['daily','当日收益'],['nav','最新净值'],['shares','持有份额'],['amount','持有金额'],['del','操作']];
+  const cols=[['name','产品'],['date','净值日期'],['wan','当日万收'],['avg7','7日日均'],['avg14','14日日均'],['ann7','7日年化'],['ann14','14日年化'],['ann30','1月年化'],['rise30','1月涨幅'],['nonpos','挂0/负收益日'],['daily','当日收益'],['nav','最新净值'],['shares','持有份额'],['amount','持有金额'],['del','操作']];
   let html='<table><tr>'+cols.map(([key,label])=>key==='del'?'<th>操作</th>':'<th onclick="sortCompare(\''+key+'\')">'+label+(CMP_SORT.key===key?(CMP_SORT.dir===1?' ▲':' ▼'):'')+'</th>').join('')+'</tr>';
   rows.forEach((r,idx)=>{
-    html+='<tr'+(idx===0?' style="background:#fff7e6"':'')+'><td><a href="detail.html?share='+encodeURIComponent(r.code)+'">'+r.name+'</a><br><span class="muted">'+r.code+'</span></td><td>'+r.date.slice(5)+'</td><td'+gainCls(r.wan)+'>'+r.wan.toFixed(2)+'</td><td'+gainCls(r.avg7)+'>'+r.avg7.toFixed(2)+'</td><td'+gainCls(r.avg14)+'>'+r.avg14.toFixed(2)+'</td><td'+annCls(r.ann7)+'>'+pctTxt(r.ann7)+'</td><td'+annCls(r.ann14)+'>'+pctTxt(r.ann14)+'</td><td'+annCls(r.ann30)+'>'+pctTxt(r.ann30)+'</td><td'+gainCls(r.rise30)+'>'+(r.rise30==null?'—':r.rise30.toFixed(2)+'%')+'</td><td'+gainCls(r.daily)+'>'+fmt(r.daily)+'</td><td>'+r.nav+'</td><td>'+r.shares.toLocaleString()+'</td><td>'+r.amount.toLocaleString(undefined,{maximumFractionDigits:2})+'</td><td><button class="pill" onclick="deleteProduct(\''+r.code+'\')">删除</button></td></tr>';
+    html+='<tr'+(idx===0?' style="background:#fff7e6"':'')+'><td><a href="detail.html?share='+encodeURIComponent(r.code)+'">'+r.name+'</a><br><span class="muted">'+r.code+'</span></td><td>'+r.date.slice(5)+'</td><td'+gainCls(r.wan)+'>'+r.wan.toFixed(2)+'</td><td'+gainCls(r.avg7)+'>'+r.avg7.toFixed(2)+'</td><td'+gainCls(r.avg14)+'>'+r.avg14.toFixed(2)+'</td><td'+annCls(r.ann7)+'>'+pctTxt(r.ann7)+'</td><td'+annCls(r.ann14)+'>'+pctTxt(r.ann14)+'</td><td'+annCls(r.ann30)+'>'+pctTxt(r.ann30)+'</td><td'+gainCls(r.rise30)+'>'+(r.rise30==null?'—':r.rise30.toFixed(2)+'%')+'</td><td'+(r.nonpos>0?' class="gain-neg"':'')+'>'+r.nonpos+'日</td><td'+gainCls(r.daily)+'>'+fmt(r.daily)+'</td><td>'+r.nav+'</td><td>'+r.shares.toLocaleString()+'</td><td>'+r.amount.toLocaleString(undefined,{maximumFractionDigits:2})+'</td><td><button class="pill" onclick="deleteProduct(\''+r.code+'\')">删除</button></td></tr>';
   });
   html+='</table>';
   wrap.innerHTML=html;
@@ -339,14 +342,14 @@ function renderHoldings(){
     let total=0, daily=0;
     prods.forEach(p=>{ const c=calc(p.share_code, viewAsOf(p.share_code)); total+=c.amount; if(!(VIEW==='next' && viewAsOf(p.share_code)==='2026-10-23')) daily+=c.daily; });
     const wanTxt=total?fmt(daily/total*10000):'0.00';
-    html+='<div class="groupHead"><span>'+gname+'('+prods.length+')</span><span style="color:#e60012">'+fmt(daily)+' 万收('+wanTxt+')</span></div>';
+    html+='<div class="groupHead"><span>'+gname+'('+prods.length+')</span><span'+gainCls(daily)+'>'+fmt(daily)+' 万收('+wanTxt+')</span></div>';
     if(!prods.length){ html+='<div class="muted" style="padding:10px">暂无持仓明细，持仓总金额 0.00、当日收益 0.00</div>'; return; }
     prods.forEach(p=>{
       const asOf=viewAsOf(p.share_code); const c=calc(p.share_code, asOf); const other=DIM==='distributor'?('管理：'+p.manager_short):('代销：'+p.distributor);
       const updated=true;
       const badge=asOf.slice(5)+' ('+fmt(c.daily/c.amount*10000)+')';
-      html+='<div class="card prod" data-share="'+p.share_code+'"><div class="row"><b>'+p.ledger_name+' <span class="muted">('+p.share_code+')</span></b><span style="color:#e60012;font-size:18px;font-weight:800">持有年化 '+fmt(c.holdingAnn)+'%</span><span style="color:'+(updated?'#2563eb':'#e60012')+'">'+badge+'</span></div>'
-        +'<div class="prod cols"><div><span class="muted">持有金额</span><b>'+c.amount.toLocaleString(undefined,{maximumFractionDigits:2})+'</b></div><div><span class="muted">当日盈亏</span><b>'+(updated?fmt(c.daily):'—')+'</b></div><div><span class="muted">本月收益</span><b>'+fmt(c.monthly)+'</b></div><div><span class="muted">持仓盈亏</span><b>'+fmt(c.holdingPnl)+'</b></div><div><span class="muted">持有年化</span><b style="color:#e60012">'+fmt(c.holdingAnn)+'%</b></div></div>'
+      html+='<div class="card prod" data-share="'+p.share_code+'"><div class="row"><b>'+p.ledger_name+' <span class="muted">('+p.share_code+')</span></b><span'+gainCls(c.holdingAnn)+' style="font-size:18px;font-weight:800">持有年化 '+fmt(c.holdingAnn)+'%</span><span style="color:'+(updated?'#2563eb':'#e60012')+'">'+badge+'</span></div>'
+        +'<div class="prod cols"><div><span class="muted">持有金额</span><b>'+c.amount.toLocaleString(undefined,{maximumFractionDigits:2})+'</b></div><div><span class="muted">当日盈亏</span><b'+gainCls(c.daily)+'>'+(updated?fmt(c.daily):'—')+'</b></div><div><span class="muted">本月收益</span><b'+gainCls(c.monthly)+'>'+fmt(c.monthly)+'</b></div><div><span class="muted">持仓盈亏</span><b'+gainCls(c.holdingPnl)+'>'+fmt(c.holdingPnl)+'</b></div><div><span class="muted">持有年化</span><b'+gainCls(c.holdingAnn)+'>'+fmt(c.holdingAnn)+'%</b></div></div>'
         +'<div class="muted">份额 '+p.shares.toLocaleString()+' · 净值 '+c.cur[1]+'（'+c.cur[0]+'） · 买入 '+p.purchase_date+' @ '+p.purchase_nav+' · '+other+'</div></div>';
     });
   });
@@ -457,9 +460,10 @@ function renderProductDetail(share){
   };
   let html='<h3 style="margin:0">'+hold.ledger_name+' · '+c.cur[1]+'（'+c.cur[0]+'）</h3>'
     +'<div class="muted">'+hold.distributor+' · '+p.share_code+'</div>'
-    +'<div style="color:#e60012;font-size:18px;font-weight:800;margin-top:8px">持有年化 '+fmt(c.holdingAnn)+'%</div>'
-    +'<div class="prod cols"><div><span class="muted">持有金额</span><b>'+c.amount.toLocaleString(undefined,{maximumFractionDigits:2})+'</b></div><div><span class="muted">当日盈亏</span><b>'+fmt(c.daily)+'</b></div><div><span class="muted">本月收益</span><b>'+fmt(c.monthly)+'</b></div><div><span class="muted">持仓盈亏</span><b>'+fmt(c.holdingPnl)+'</b></div></div>'
+    +'<div'+gainCls(c.holdingAnn)+' style="font-size:18px;font-weight:800;margin-top:8px">持有年化 '+fmt(c.holdingAnn)+'%</div>'
+    +'<div class="prod cols"><div><span class="muted">持有金额</span><b>'+c.amount.toLocaleString(undefined,{maximumFractionDigits:2})+'</b></div><div><span class="muted">当日盈亏</span><b'+gainCls(c.daily)+'>'+fmt(c.daily)+'</b></div><div><span class="muted">本月收益</span><b'+gainCls(c.monthly)+'>'+fmt(c.monthly)+'</b></div><div><span class="muted">持仓盈亏</span><b'+gainCls(c.holdingPnl)+'>'+fmt(c.holdingPnl)+'</b></div></div>'
     +'<div class="muted">份额 '+hold.shares.toLocaleString()+' · 买入 '+hold.purchase_date+' @ '+hold.purchase_nav+'</div>'
+    +(()=>{ const bad=nonPosDays(share); return '<div'+(bad.count>0?' class="gain-neg"':' class="muted"')+'>挂0或负收益日：'+bad.count+'日'+(bad.count?' · '+bad.list.map(r=>r.date.slice(5)+'('+wanTxt(r.wan)+')').join('、'):'')+'</div>'; })()
     +'<div class="detail" style="display:block"><h4>近30日</h4><table><tr><th>净值日期</th><th>当日万收</th><th>近七日日均</th><th>近14日日均</th><th>近7日年化</th><th>近14日年化</th><th>近一月年化</th><th>1月涨幅</th></tr>'
     +rows.map(r=>'<tr><td>'+r.date+'</td><td'+gainCls(r.wan)+'>'+wanTxt(r.wan)+'</td><td'+gainCls(r.avg7)+'>'+r.avg7.toFixed(2)+'</td><td'+gainCls(r.avg14)+'>'+r.avg14.toFixed(2)+'</td><td'+annCls(r.ann7)+'>'+pctTxt(r.ann7)+'</td><td'+annCls(r.ann14)+'>'+pctTxt(r.ann14)+'</td><td'+annCls(r.ann30)+'>'+pctTxt(r.ann30)+'</td><td'+gainCls(r.rise30)+'>'+(r.rise30==null?'—':r.rise30.toFixed(2)+'%')+'</td></tr>').join('')+'</table></div>';
   html+='<h4 style="margin-top:20px">买入 / 赎回 · 本产品</h4>';

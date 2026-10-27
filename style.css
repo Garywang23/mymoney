@@ -27,7 +27,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 .cal{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;text-align:center;font-size:13px}
 .cal .cell{border:1px solid #eee;border-radius:10px;min-height:52px;padding:6px}
 .cal .cell.has{background:#fdeef2}
-.cal .cell .v{color:#e60012;font-size:12px}
+.cal .cell .v{font-size:12px}
 .detail{display:none;margin-top:10px;border-top:1px dashed #ddd;padding-top:10px}
 table{width:100%;border-collapse:collapse;font-size:13px}th,td{border-bottom:1px solid #eee;padding:5px;text-align:left}
 #compareTable th{cursor:pointer;white-space:nowrap;user-select:none}
