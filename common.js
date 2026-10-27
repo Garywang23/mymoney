@@ -223,8 +223,34 @@ function renderTodaySummary(){
     });
     return total;
   })();
-  const monthAnn=todayAmt?monthGain/todayAmt*12*100:null;
-  const prevAnn=prevAmt?prevGain/prevAmt*12*100:null;
+  const dietzAnn=(monthStr, gain, endDate)=>{
+    const [yy,mm]=monthStr.split('-').map(Number);
+    const D=new Date(yy, mm, 0).getDate();
+    const startStr=monthStr+'-01';
+    const beforeStr=fmtDateLocal(new Date(yy, mm-1, 1).getTime()-86400000);
+    let V0=0;
+    HOLD.products.forEach(p=>{
+      const h=histAsc(p.share_code).filter(x=>x[0]<=beforeStr);
+      if(!h.length) return;
+      const last=h[h.length-1];
+      let sh=0;
+      (TX?TX.transactions:[]).filter(t=>t.product===p.ledger_name).forEach(t=>{ const nd=t.nav_date||t.date; if(nd<=last[0]) sh+=t.type==='卖出'?-t.shares:t.shares; });
+      V0+=sh*last[1];
+    });
+    let denom=V0;
+    (TX?TX.transactions:[]).forEach(t=>{
+      const nd=t.nav_date||t.date;
+      if(nd>=startStr && nd<=endDate && nd.startsWith(monthStr)){
+        const cf=t.type==='买入'?t.amount:-t.amount;
+        const d=daysBetween(startStr, nd);
+        denom+=cf*(D-d)/D;
+      }
+    });
+    return denom?gain/denom*365/D*100:null;
+  };
+  const monthAnn=dietzAnn(month, monthGain, ds);
+  const prevEnd=prevMonth+'-'+String(new Date(Number(prevMonth.split('-')[0]), Number(prevMonth.split('-')[1]), 0).getDate()).padStart(2,'0');
+  const prevAnn=dietzAnn(prevMonth, prevGain, prevEnd);
   wrap.innerHTML='<div class="row"><h2>今日收益总揽</h2><span class="muted">'+ds+' 已全部更新</span></div>'
     +'<div style="text-align:center;margin:8px 0"><b'+gainCls(todayGain)+' style="font-size:28px">'+fmt(todayGain)+' ('+fmt(wan)+')</b></div>'
     +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">'
