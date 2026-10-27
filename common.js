@@ -278,7 +278,7 @@ function zeroDays(share){ const rows=metricsFor(share); if(!rows.length) return 
 function renderCompare(){
   const wrap=document.getElementById('compareTable'); if(!DATA||!HOLD) return;
   if(CMP_SORT.key==='rise7'||CMP_SORT.key==='rise14') CMP_SORT={key:'rise30',dir:-1};
-  if(CMP_SORT.key==='shares'||CMP_SORT.key==='amount') CMP_SORT={key:'wan',dir:-1};
+  if(CMP_SORT.key==='shares'||CMP_SORT.key==='amount'||CMP_SORT.key==='daily') CMP_SORT={key:'wan',dir:-1};
   const countEl=document.getElementById('compareCount'); if(countEl) countEl.textContent=HOLD.products.length+'只';
   const rows=[];
   HOLD.products.forEach(p=>{
@@ -309,7 +309,7 @@ function renderCompare(){
     if(typeof va==='string') return d*va.localeCompare(vb);
     return d*(va-vb);
   });
-  const cols=[['name','产品'],['date','净值日期'],['wan','当日万收'],['avg7','7日日均'],['avg14','14日日均'],['zero','挂0'],['ann7','7日年化'],['ann14','14日年化'],['ann30','1月年化'],['rise30','1月涨幅'],['daily','当日收益'],['nav','最新净值'],['del','操作']];
+  const cols=[['name','产品'],['date','净值日期'],['wan','当日万收'],['avg7','7日日均'],['avg14','14日日均'],['zero','挂0'],['ann7','7日年化'],['ann14','14日年化'],['ann30','1月年化'],['rise30','1月涨幅'],['nav','最新净值'],['del','操作']];
   const header='<tr>'+cols.map(([key,label])=>key==='del'?'<th>操作</th>':'<th onclick="sortCompare(\''+key+'\')">'+label+(CMP_SORT.key===key?(CMP_SORT.dir===1?' ▲':' ▼'):'')+'</th>').join('')+'</tr>';
   const groupOrder=['网商银行','微众稳健'];
   rows.forEach(r=>{ if(!groupOrder.includes(r.distributor)) groupOrder.push(r.distributor); });
@@ -319,7 +319,7 @@ function renderCompare(){
     html+='<div class="split-group"><div class="groupHead"><span>'+g+'('+gr.length+')</span></div><div style="overflow-x:auto">';
     html+='<table>'+header;
     gr.forEach(r=>{
-      html+='<tr'+(globalIdx===0?' style="background:#fff7e6"':'')+'><td><a href="detail.html?share='+encodeURIComponent(r.code)+'">'+r.name+'</a><br><span class="muted">'+r.code+'</span></td><td>'+r.date.slice(5)+'</td><td'+gainCls(r.wan)+'>'+r.wan.toFixed(2)+'</td><td'+gainCls(r.avg7)+'>'+r.avg7.toFixed(2)+'</td><td'+gainCls(r.avg14)+'>'+r.avg14.toFixed(2)+'</td><td'+(r.zero>0?' class="gain-neg"':'')+'>'+r.zero+'</td><td'+annCls(r.ann7)+'>'+pctTxt(r.ann7)+'</td><td'+annCls(r.ann14)+'>'+pctTxt(r.ann14)+'</td><td'+annCls(r.ann30)+'>'+pctTxt(r.ann30)+'</td><td'+gainCls(r.rise30)+'>'+(r.rise30==null?'—':r.rise30.toFixed(2)+'%')+'</td><td'+gainCls(r.daily)+'>'+fmt(r.daily)+'</td><td>'+r.nav+'</td><td><button class="pill" onclick="deleteProduct(\''+r.code+'\')">删除</button></td></tr>';
+      html+='<tr'+(globalIdx===0?' style="background:#fff7e6"':'')+'><td><a href="detail.html?share='+encodeURIComponent(r.code)+'">'+r.name+'</a><br><span class="muted">'+r.code+'</span></td><td>'+r.date.slice(5)+'</td><td'+gainCls(r.wan)+'>'+r.wan.toFixed(2)+'</td><td'+gainCls(r.avg7)+'>'+r.avg7.toFixed(2)+'</td><td'+gainCls(r.avg14)+'>'+r.avg14.toFixed(2)+'</td><td'+(r.zero>0?' class="gain-neg"':'')+'>'+r.zero+'</td><td'+annCls(r.ann7)+'>'+pctTxt(r.ann7)+'</td><td'+annCls(r.ann14)+'>'+pctTxt(r.ann14)+'</td><td'+annCls(r.ann30)+'>'+pctTxt(r.ann30)+'</td><td'+gainCls(r.rise30)+'>'+(r.rise30==null?'—':r.rise30.toFixed(2)+'%')+'</td><td>'+r.nav+'</td><td><button class="pill" onclick="deleteProduct(\''+r.code+'\')">删除</button></td></tr>';
       globalIdx++;
     });
     html+='</table></div></div>';
