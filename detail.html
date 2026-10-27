@@ -9,17 +9,17 @@
 <body>
 <div class="wrap">
 <h1 class="pagetitle">个人台账</h1>
-<nav class="nav"><a href="index.html" class="">首页</a><a href="calendar.html" class="">收益日历</a><a href="compare.html" class="">产品对比</a><a href="transactions.html" class="">交易中心</a></nav>
+<nav class="nav"><a href="index.html" class="">首页</a><a href="calendar.html" class="">收益日历</a><a href="compare.html" class="">产品对比</a><a href="transactions.html" class="">交易记录</a></nav>
 
 <div class="card">
-<div class="row"><h2>产品详情</h2><span><a href="index.html">回首页</a> · <a href="transactions.html">交易中心</a></span></div>
+<div class="row"><h2>产品详情</h2><span><a href="index.html">回首页</a> · <a href="transactions.html">交易记录</a></span></div>
 <div id="list"></div>
 <p class="muted">本页只显示本产品的信息，不列其他产品。持有年化 = 持仓盈亏 / 本金 × 365 / 持有天数，持仓盈亏 = 份额 ×（最新净值 - 买入净值），本金 = 份额 × 买入净值，持有天数 = 最新净值日 - 买入日，全部从买入日起算，买入日之前的净值不用。其他公式：当日万收=(当日净值/上一净值-1)×10000；近七日日均=近7个自然日内当日万收之和/7，近14日同理；近7日年化=(当日净值/7日前最近净值-1)×365/实际天数，近14日、近一月同理。成立以来年化已按你的要求去掉。净值以管理人官网为准，本页不能自动获取最新净值，未公布的日期不反推、不显示。</p>
 </div>
 <div class="card" style="margin-top:16px">
 <details open>
-<summary>新增买入 / 赎回（本产品，只改本页显示，刷新后恢复仓库数据）</summary>
-<p class="muted">T+1口径：申请日即净值日，确认日默认下一个工作日（周一至周五，节假日请手动改确认日）。买入填金额，赎回填份额。申请日的净值如果在历史里有，就按该净值算份额/金额并计入本页份额；如果净值还没公布，就记为待确认，不计入份额。</p>
+<summary>新增买入 / 赎回（本产品，本机保存，首页总额和交易记录页同浏览器联动）</summary>
+<p class="muted">T+1口径：申请日即净值日，确认日默认下一个工作日（周一至周五，节假日请手动改确认日）。买入填金额，赎回填份额。申请日的净值如果在历史里有，就按该净值算份额/金额并计入份额；如果净值还没公布，就记为待确认，不计入份额。加入后会保存在本浏览器里，刷新不丢，首页总额和交易记录页（同一个浏览器）都会联动；换设备或清浏览器数据会丢，要同步到仓库请点导出交易 JSON 发给助理。确认买入如果和一笔待确认金额、产品相同，会自动删掉那笔待确认，不会重复算。</p>
 <label>类型 <select id="txType"><option value="买入">买入</option><option value="赎回">赎回</option></select></label>
 <label>申请日 <input id="txApply" type="date"></label>
 <label>确认日 <input id="txConfirm" type="date"></label>
@@ -27,12 +27,13 @@
 <label id="txShrLabel" style="display:none">份额 <input id="txShr" type="number" step="0.01" placeholder="10000"></label>
 <button id="txAddBtn">加入本页</button>
 <button id="txExpBtn">导出交易 JSON</button>
+<button id="txClearBtn">清除本机保存</button>
 <p id="txMsg" class="muted"></p>
 </details>
 </div>
 <div class="card" style="margin-top:16px">
 <details open>
-<summary>新增一日净值 / 导出（本产品，只改本页显示，刷新后恢复仓库数据）</summary>
+<summary>新增一日净值 / 导出（本产品，本机保存，刷新不丢）</summary>
 <label>产品 <span id="pName" class="muted"></span></label>
 <label>日期 <input id="dIn" type="date"></label>
 <label>净值 <input id="nIn" type="number" step="0.000001" placeholder="1.0190"></label>
@@ -75,26 +76,33 @@ loadData().then(()=>{
     if(type==='赎回' && shr>curHold.shares){ msg.textContent='赎回份额大于当前份额 '+curHold.shares.toLocaleString()+'，请改小'; return; }
     const navEntry=histAsc(share).find(x=>x[0]===apply);
     if(!navEntry){
-      if(type==='买入') TX.pending.push({type:'待确认', product:hold.ledger_name, distributor:hold.distributor, date:'--', shares:null, amount:amt, nav_date:apply, planned_confirm:confirm});
-      else TX.pending.push({type:'待确认', product:hold.ledger_name, distributor:hold.distributor, date:'--', shares:null, amount:0, nav_date:apply, planned_confirm:confirm, redeem_shares:shr});
-      msg.textContent='申请日 '+apply+' 的净值还没公布，已记为待确认，未计入份额。确认后请再核对净值和份额。';
+      if(type==='买入') { const pend={type:'待确认', product:hold.ledger_name, distributor:hold.distributor, date:'--', shares:null, amount:amt, nav_date:apply, planned_confirm:confirm}; TX.pending.push(pend); LOCAL.pendingAdded.push(pend); }
+      else { const pend={type:'待确认', product:hold.ledger_name, distributor:hold.distributor, date:'--', shares:null, amount:0, nav_date:apply, planned_confirm:confirm, redeem_shares:shr}; TX.pending.push(pend); LOCAL.pendingAdded.push(pend); }
+      msg.textContent='申请日 '+apply+' 的净值还没公布，已记为待确认，未计入份额，已本机保存。确认后请再核对净值和份额。';
     } else {
       const nav=navEntry[1];
       if(type==='买入'){
         const shares=Math.round(amt/nav*100)/100;
-        TX.transactions.push({type:'买入', product:hold.ledger_name, distributor:hold.distributor, date:confirm, shares, amount:amt, nav_date:apply});
-        curHold.shares=Math.round((curHold.shares+shares)*100)/100;
-        msg.textContent='已加入买入 '+apply+' 净值 '+nav+'，金额 '+amt.toLocaleString(undefined,{minimumFractionDigits:2})+'，份额 '+shares.toLocaleString()+'，已计入本页当前份额。';
+        const rec={type:'买入', product:hold.ledger_name, distributor:hold.distributor, date:confirm, shares, amount:amt, nav_date:apply};
+        TX.transactions.push(rec); LOCAL.added.push(rec);
+        const beforePend=TX.pending.length;
+        TX.pending=TX.pending.filter(p=>!(p.product===hold.ledger_name&&p.amount===amt));
+        if(TX.pending.length<beforePend) LOCAL.pendingRemoved.push({product:hold.ledger_name, amount:amt});
+        curHold.shares=Math.round((curHold.shares+shares)*100)/100; LOCAL.holdShares[share]=curHold.shares;
+        msg.textContent='已加入买入 '+apply+' 净值 '+nav+'，金额 '+amt.toLocaleString(undefined,{minimumFractionDigits:2})+'，份额 '+shares.toLocaleString()+'，已计入份额，已本机保存，首页总额和交易记录页同浏览器联动。'+(beforePend>TX.pending.length?'同额待确认已自动删掉。':'');
       } else {
         const amount=Math.round(shr*nav*100)/100;
-        TX.transactions.push({type:'卖出', product:hold.ledger_name, distributor:hold.distributor, date:confirm, shares:shr, amount, nav_date:apply});
-        curHold.shares=Math.round((curHold.shares-shr)*100)/100;
-        msg.textContent='已加入赎回 '+apply+' 净值 '+nav+'，份额 '+shr.toLocaleString()+'，金额 '+amount.toLocaleString(undefined,{minimumFractionDigits:2})+'，已从本页当前份额扣减。';
+        const rec={type:'卖出', product:hold.ledger_name, distributor:hold.distributor, date:confirm, shares:shr, amount, nav_date:apply};
+        TX.transactions.push(rec); LOCAL.added.push(rec);
+        curHold.shares=Math.round((curHold.shares-shr)*100)/100; LOCAL.holdShares[share]=curHold.shares;
+        msg.textContent='已加入赎回 '+apply+' 净值 '+nav+'，份额 '+shr.toLocaleString()+'，金额 '+amount.toLocaleString(undefined,{minimumFractionDigits:2})+'，已从份额扣减，已本机保存，首页总额和交易记录页同浏览器联动。';
       }
     }
     TX.summary_current8={buys:TX.transactions.filter(t=>t.type==='买入').length, sells:TX.transactions.filter(t=>t.type==='卖出').length, pending:TX.pending.length};
+    saveLocal();
     renderOne();
   };
+  document.getElementById('txClearBtn').onclick=()=>{ clearLocal(); location.reload(); };
   document.getElementById('txExpBtn').onclick=()=>{
     const blob=new Blob([JSON.stringify(TX,null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='transactions.json'; a.click();
   };
@@ -102,7 +110,8 @@ loadData().then(()=>{
     const d=document.getElementById('dIn').value, n=parseFloat(document.getElementById('nIn').value);
     if(!d||isNaN(n)){document.getElementById('addMsg').textContent='请填写日期和净值';return;}
     const p=DATA.products.find(x=>x.share_code===share); p.history_desc=p.history_desc.filter(x=>x[0]!==d); p.history_desc.unshift([d,n]); p.history_desc.sort((a,b)=>b[0].localeCompare(a[0]));
-    document.getElementById('addMsg').textContent='已加入 '+hold.ledger_name+' '+d+' '+n+'，全部指标已由净值重算，刷新后恢复仓库数据。';
+    LOCAL.navAdded=LOCAL.navAdded.filter(x=>!(x.share_code===share&&x.date===d)); LOCAL.navAdded.push({share_code:share, date:d, nav:n}); saveLocal();
+    document.getElementById('addMsg').textContent='已加入 '+hold.ledger_name+' '+d+' '+n+'，全部指标已由净值重算，已本机保存，刷新不丢。';
     renderOne();
   };
   document.getElementById('expBtn').onclick=()=>{

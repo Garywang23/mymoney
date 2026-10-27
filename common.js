@@ -4,10 +4,33 @@ const fmt=(n,d=2)=> (n>=0?'+':'')+n.toFixed(d);
 const parseD=s=>new Date(s+'T00:00:00');
 const daysBetween=(a,b)=>Math.round((parseD(b)-parseD(a))/86400000);
 let TX=null;
+let LOCAL=null;
+function loadLocal(){
+  try{ LOCAL=JSON.parse(localStorage.getItem('mymoney_local_v1')||'null')||{added:[],pendingAdded:[],pendingRemoved:[],holdShares:{},navAdded:[]}; }
+  catch(e){ LOCAL={added:[],pendingAdded:[],pendingRemoved:[],holdShares:{},navAdded:[]}; }
+  return LOCAL;
+}
+function saveLocal(){
+  try{ localStorage.setItem('mymoney_local_v1', JSON.stringify(LOCAL)); }catch(e){}
+}
+function clearLocal(){ try{ localStorage.removeItem('mymoney_local_v1'); }catch(e){} LOCAL={added:[],pendingAdded:[],pendingRemoved:[],holdShares:{},navAdded:[]}; }
 async function loadData(){
   DATA=await (await fetch('nav-history.json')).json();
   HOLD=await (await fetch('holdings.json')).json();
   try{ TX=await (await fetch('transactions.json')).json(); }catch(e){ TX=null; }
+  loadLocal();
+  if(TX){
+    if(!TX.pending) TX.pending=[];
+    (LOCAL.added||[]).forEach(t=>{ if(!TX.transactions.some(x=>x.product===t.product&&x.date===t.date&&x.nav_date===t.nav_date&&x.amount===t.amount&&x.shares===t.shares&&x.type===t.type)) TX.transactions.push(t); });
+    (LOCAL.pendingAdded||[]).forEach(t=>{ if(!TX.pending.some(x=>x.product===t.product&&x.amount===t.amount)) TX.pending.push(t); });
+    if(LOCAL.pendingRemoved && LOCAL.pendingRemoved.length) TX.pending=TX.pending.filter(p=>!LOCAL.pendingRemoved.some(r=>r.product===p.product&&r.amount===p.amount));
+    if(LOCAL.holdShares) HOLD.products.forEach(p=>{ if(LOCAL.holdShares[p.share_code]!=null) p.shares=LOCAL.holdShares[p.share_code]; });
+  }
+  (LOCAL.navAdded||[]).forEach(n=>{
+    const prod=DATA.products.find(x=>x.share_code===n.share_code); if(!prod) return;
+    const existing=prod.history_desc.find(x=>x[0]===n.date);
+    if(existing) existing[1]=n.nav; else { prod.history_desc.push([n.date,n.nav]); prod.history_desc.sort((a,b)=>b[0].localeCompare(a[0])); }
+  });
 }
 function setTxt(id, txt){const e=document.getElementById(id); if(e) e.textContent=txt;}
 function navProd(share){ return DATA.products.find(x=>x.share_code===share); }
@@ -106,15 +129,19 @@ function applyView(){
 }
 function renderTx(){
   if(!TX || !document.getElementById('txSummary')) return;
-  document.getElementById('txSummary').textContent='目前8只：买入12次、卖出2次、待确认1笔（诚享7天29A 50,000.00）。';
+  const buys=TX.transactions.filter(t=>t.type==='买入').length;
+  const sells=TX.transactions.filter(t=>t.type==='卖出').length;
+  const pend=TX.pending||[];
+  document.getElementById('txSummary').textContent='目前8只：买入'+buys+'次、卖出'+sells+'次、待确认'+pend.length+'笔'+(pend.length?'（'+pend.map(p=>p.product+' '+p.amount.toLocaleString(undefined,{minimumFractionDigits:2})).join('、')+'）':'')+'。本机保存的记录（同浏览器）已合并显示，换设备请用详情页导出 JSON 同步到仓库。';
   const draw=()=>{
     const m=document.getElementById('txMonth').value, inst=document.getElementById('txInst').value;
     let list=TX.transactions.filter(t=>(m==='全部月份'||t.date.startsWith(m))&&(inst==='全部机构'||t.distributor===inst));
-    let html='<div class="muted" style="margin-top:10px">待确认：诚享7天29A · 微众稳健 · 确认日 -- · 份额 -- · 50,000.00</div>';
+    list=list.slice().sort((a,b)=>b.date.localeCompare(a.date)||b.amount-a.amount);
+    let html=pend.length?pend.map(p=>'<div class="muted" style="margin-top:10px">待确认：'+p.product+' · '+(p.distributor||'')+' · 确认日 -- · 份额 -- · '+p.amount.toLocaleString(undefined,{minimumFractionDigits:2})+'</div>').join(''):'<div class="muted" style="margin-top:10px">暂无待确认交易。</div>';
     let lastMonth='';
     list.forEach(t=>{
       const mm=t.date.slice(0,7); if(mm!==lastMonth){ lastMonth=mm; html+='<div class="groupHead"><span>'+mm+'</span></div>'; }
-      html+='<div class="row" style="border-bottom:1px solid #eee;padding:8px 0"><span><b style="color:'+(t.type==='卖出'?'#0a7d4a':'#e60012')+'">'+t.type+'</b> '+t.product+'<br><span class="muted">'+t.distributor+' · 确认日 '+t.date+' · 份额 '+t.shares.toLocaleString()+'</span></span><b>'+t.amount.toLocaleString(undefined,{minimumFractionDigits:2})+'</b></div>';
+      html+='<div class="row" style="border-bottom:1px solid #eee;padding:8px 0"><span><b style="color:'+(t.type==='卖出'?'#0a7d4a':'#e60012')+'">'+(t.type==='卖出'?'赎回':t.type)+'</b> '+t.product+'<br><span class="muted">'+t.distributor+' · 确认日 '+t.date+' · 净值日 '+(t.nav_date||'--')+' · 份额 '+t.shares.toLocaleString()+'</span></span><b>'+t.amount.toLocaleString(undefined,{minimumFractionDigits:2})+'</b></div>';
     });
     document.getElementById('txList').innerHTML=html;
   };
@@ -140,7 +167,7 @@ function renderHomeTotal(){
   const wrap=document.getElementById('homeTotal'); if(!wrap) return;
   let total=0;
   HOLD.products.forEach(p=>{ const c=calc(p.share_code, viewAsOf(p.share_code)); total+=c.amount; });
-  wrap.innerHTML='<div class="muted">持仓总金额（元）</div><div style="font-size:30px;font-weight:800;color:#e60012">'+total.toLocaleString(undefined,{maximumFractionDigits:2})+'</div><p class="muted">按各产品最新管理人官网净值算：诚享、财富牛、灵动N按2026-10-26，其他5只按2026-10-23（10-26未公布，未补）。待确认买入诚享50,000.00未计入份额和金额。只算目前8只。</p><p><a href="transactions.html">交易中心 →</a> · <a href="compare.html">产品对比 →</a></p>';
+  wrap.innerHTML='<div class="muted">持仓总金额（元）</div><div style="font-size:30px;font-weight:800;color:#e60012">'+total.toLocaleString(undefined,{maximumFractionDigits:2})+'</div><p class="muted">按各产品最新管理人官网净值算：诚享、财富牛、灵动N按2026-10-26，其他5只按2026-10-23（10-26未公布，未补）。诚享2026-10-27已确认买入50,000.00已计入份额和金额，待确认已清零。只算目前8只。本机保存的记录（同浏览器）已合并计入。</p><p><a href="transactions.html">交易记录 →</a> · <a href="compare.html">产品对比 →</a></p>';
 }
 function renderHomeDetail(){
   const wrap=document.getElementById('homeDetail'); if(!wrap) return;
